@@ -1,0 +1,45 @@
+// Prisma schema — Wallety API
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id        String        @id @default(uuid())
+  userId    String
+  currency  String
+  createdAt DateTime      @default(now())
+  entries   LedgerEntry[]
+
+  @@map("accounts")
+}
+
+model Transfer {
+  id             String        @id @default(uuid())
+  idempotencyKey String        @unique
+  status         String
+  createdAt      DateTime      @default(now())
+  entries        LedgerEntry[]
+
+  @@map("transfers")
+}
+
+model LedgerEntry {
+  id         String   @id @default(uuid())
+  transferId String
+  accountId  String
+  amount     BigInt
+  currency   String
+  createdAt  DateTime @default(now())
+  transfer   Transfer @relation(fields: [transferId], references: [id])
+  account    Account  @relation(fields: [accountId], references: [id])
+
+  @@index([accountId])
+  @@map("ledger_entries")
+}

@@ -22,8 +22,10 @@ export default defineConfig({
         test: {
           name: "integration",
           include: ["src/**/*.int.test.ts"],
-          // Integration tests share one database and truncate it between tests.
-          fileParallelism: false,
+          // Integration tests share one database and clean it between tests, so their
+          // files must never run at the same time. A VITEST_MAX_WORKERS variable in the
+          // environment overrides this option, which is why the npm script sets it too.
+          maxWorkers: 1,
         },
       },
     ],

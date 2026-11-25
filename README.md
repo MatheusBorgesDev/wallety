@@ -10,10 +10,13 @@ as each phase lands.
 
 ## What exists today
 
-- An Express 5 + TypeScript API with a `GET /health` endpoint that checks the database.
+- An Express 5 + TypeScript API with `GET /health` (checks the database) and `GET /health/live` (does not).
+- Structured JSON logs, one line per request with a correlation id; headers and bodies are never logged.
+- A multi-stage Dockerfile whose runtime image has no shell and runs as a non-root user.
 - The first ledger schema (accounts, transfers, ledger entries) as a Prisma migration on PostgreSQL.
 - Unit tests, and integration tests that run against a real PostgreSQL database.
-- CI on GitHub Actions: lint, typecheck, unit tests and integration tests on every pull request.
+- CI on GitHub Actions: lint, typecheck, unit tests, integration tests and a container build that starts
+  the whole stack, on every pull request.
 
 ## What is planned for v1
 
@@ -23,7 +26,16 @@ continuous deployment, and a measured comparison between `SERIALIZABLE` isolatio
 
 ## Running locally
 
-Requirements: Node 24 and Docker.
+With Docker only, one command starts the database, applies the migrations and starts the API:
+
+```sh
+docker compose up --build
+curl http://localhost:3000/health
+```
+
+Set `API_PORT` to use another host port.
+
+For development, with Node 24 and Docker:
 
 ```sh
 docker compose up -d postgres

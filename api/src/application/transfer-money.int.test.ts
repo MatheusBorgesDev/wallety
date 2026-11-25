@@ -12,9 +12,19 @@ import {
   systemAccount,
 } from "../test/fixtures.js";
 import { AccountNotFound, IdempotencyKeyReuse } from "./errors.js";
+import type { Ledger } from "./ledger.js";
 import { transferMoney } from "./transfer-money.js";
 
 const ledger = createPessimisticLedger(prisma);
+
+// A ledger whose unit of work fails after the use case did everything, right before commit.
+const ledgerThatFailsBeforeCommit: Ledger = {
+  transaction: (work) =>
+    ledger.transaction(async (tx) => {
+      await work(tx);
+      throw new Error("connection lost before commit");
+    }),
+};
 
 async function twoUsersInOneSandbox() {
   const sandbox = await createSandbox();
@@ -197,5 +207,112 @@ describe("transferMoney", () => {
 
     await expect(attempt).rejects.toThrow(CrossSandboxTransfer);
     expect(await balanceOf(stranger.account.id)).toBe(0n);
+  });
+
+  describe("outbox", () => {
+    it("writes exactly one event for a posted transfer, in the same transaction", async () => {
+      const { alice, bob } = await twoUsersInOneSandbox();
+      await fund(ledger, alice.account.id, 1000n);
+
+      const result = await transferMoney(ledger, {
+        actor: { type: "user", userId: alice.user.id },
+        fromAccountId: alice.account.id,
+        toAccountId: bob.account.id,
+        amount: 300n,
+        idempotencyKey: "key-1",
+      });
+
+      const events = await prisma.outboxEvent.findMany({ where: { transferId: result.transferId } });
+      expect(events).toHaveLength(1);
+      const event = events[0]!;
+      expect(event).toMatchObject({
+        type: "transfer.posted",
+        sandboxId: alice.account.sandboxId,
+        status: "PENDING",
+        attempts: 0,
+      });
+      expect(JSON.parse(event.payload)).toEqual({
+        id: event.id,
+        type: "transfer.posted",
+        createdAt: expect.any(String),
+        data: {
+          transferId: result.transferId,
+          sandboxId: alice.account.sandboxId,
+          entries: [
+            { accountId: alice.account.id, amount: "-300", currency: "BRL" },
+            { accountId: bob.account.id, amount: "300", currency: "BRL" },
+          ],
+        },
+      });
+    });
+
+    it("writes an event for funding from the system account too", async () => {
+      const { alice } = await twoUsersInOneSandbox();
+
+      const funding = await fund(ledger, alice.account.id, 1000n);
+
+      expect(await prisma.outboxEvent.count({ where: { transferId: funding.transferId } })).toBe(1);
+    });
+
+    it("writes no event when the transfer is rejected", async () => {
+      const { alice, bob } = await twoUsersInOneSandbox();
+      await fund(ledger, alice.account.id, 100n);
+      const eventsBefore = await prisma.outboxEvent.count();
+
+      const attempt = transferMoney(ledger, {
+        actor: { type: "user", userId: alice.user.id },
+        fromAccountId: alice.account.id,
+        toAccountId: bob.account.id,
+        amount: 101n,
+        idempotencyKey: "key-1",
+      });
+
+      await expect(attempt).rejects.toThrow(InsufficientFunds);
+      expect(await prisma.outboxEvent.count()).toBe(eventsBefore);
+    });
+
+    it("writes no event when the transaction rolls back after the event was recorded", async () => {
+      const { alice, bob } = await twoUsersInOneSandbox();
+      await fund(ledger, alice.account.id, 1000n);
+      const before = {
+        events: await prisma.outboxEvent.count(),
+        transfers: await prisma.transfer.count(),
+        entries: await prisma.ledgerEntry.count(),
+      };
+
+      const attempt = transferMoney(ledgerThatFailsBeforeCommit, {
+        actor: { type: "user", userId: alice.user.id },
+        fromAccountId: alice.account.id,
+        toAccountId: bob.account.id,
+        amount: 300n,
+        idempotencyKey: "key-1",
+      });
+
+      await expect(attempt).rejects.toThrow("connection lost before commit");
+      expect({
+        events: await prisma.outboxEvent.count(),
+        transfers: await prisma.transfer.count(),
+        entries: await prisma.ledgerEntry.count(),
+      }).toEqual(before);
+      expect(await balanceOf(alice.account.id)).toBe(1000n);
+    });
+
+    it("writes no second event when a request is replayed", async () => {
+      const { alice, bob } = await twoUsersInOneSandbox();
+      await fund(ledger, alice.account.id, 1000n);
+      const command = {
+        actor: { type: "user", userId: alice.user.id } as const,
+        fromAccountId: alice.account.id,
+        toAccountId: bob.account.id,
+        amount: 300n,
+        idempotencyKey: "key-1",
+      };
+
+      const first = await transferMoney(ledger, command);
+      await transferMoney(ledger, command);
+      await transferMoney(ledger, command);
+
+      expect(await prisma.outboxEvent.count({ where: { transferId: first.transferId } })).toBe(1);
+    });
   });
 });

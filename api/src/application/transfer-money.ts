@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { ensureSufficientFunds } from "../domain/balance.js";
 import { buildEntries } from "../domain/entries.js";
 import { AccountNotFound, IdempotencyKeyReuse } from "./errors.js";
+import { buildTransferPostedEvent } from "./events.js";
 import type { AccountRecord, Ledger } from "./ledger.js";
 
 // A user moves money out of an account they own. The system issues money from
@@ -50,6 +51,17 @@ export async function transferMoney(ledger: Ledger, command: TransferCommand): P
     const entries = buildEntries(from, to, command.amount);
     ensureSufficientFunds(from, await tx.balanceOf(from.id), command.amount);
     await tx.appendEntries(transferId, entries);
+    // Same transaction as the entries: the event exists if and only if the transfer commits.
+    await tx.recordEvent(
+      buildTransferPostedEvent({
+        eventId: randomUUID(),
+        transferId,
+        // buildEntries only accepts a user account as the destination, and those always have a sandbox.
+        sandboxId: to.sandboxId!,
+        entries,
+        occurredAt: new Date(),
+      }),
+    );
 
     return { transferId, replayed: false };
   });

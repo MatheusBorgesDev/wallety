@@ -22,12 +22,30 @@ async function systemAccount(currency = "BRL") {
   return prisma.account.findFirstOrThrow({ where: { kind: "SYSTEM", currency } });
 }
 
-async function insertTransfer(tx: Tx, scope = "system", key: string = randomUUID()) {
+async function insertTransfer(
+  tx: Tx,
+  scope = "system",
+  key: string = randomUUID(),
+  options: { withEvent?: boolean } = {},
+) {
   const id = randomUUID();
   await tx.$executeRaw`
     INSERT INTO "transfers" ("id", "idempotencyScope", "idempotencyKey", "requestHash")
     VALUES (${id}, ${scope}, ${key}, 'hash')`;
+  if (options.withEvent ?? true) {
+    await insertEvent(tx, id);
+  }
   return id;
+}
+
+async function insertEvent(tx: Tx, transferId: string) {
+  const [sandbox] = await tx.$queryRaw<{ id: string }[]>`
+    INSERT INTO "sandboxes" ("id", "kind") VALUES (${randomUUID()}, 'DEMO') RETURNING "id"`;
+  const eventId = randomUUID();
+  await tx.$executeRaw`
+    INSERT INTO "outbox_events" ("id", "type", "transferId", "sandboxId", "payload")
+    VALUES (${eventId}, 'transfer.posted', ${transferId}, ${sandbox!.id}, '{}')`;
+  return eventId;
 }
 
 async function insertEntry(tx: Tx, transferId: string, accountId: string, amount: bigint, currency = "BRL") {
@@ -196,6 +214,7 @@ describe("ledger schema guarantees", () => {
 
       await prisma.$transaction(async (tx) => {
         await tx.$executeRawUnsafe(`SET LOCAL ROLE wallety_purge`);
+        await tx.$executeRaw`DELETE FROM "outbox_events" WHERE "transferId" = ${transferId}`;
         await tx.$executeRaw`DELETE FROM "ledger_entries" WHERE "transferId" = ${transferId}`;
         await tx.$executeRaw`DELETE FROM "transfers" WHERE "id" = ${transferId}`;
       });
@@ -218,10 +237,103 @@ describe("ledger schema guarantees", () => {
       expect(await prisma.ledgerEntry.count()).toBe(2);
     });
 
+    it("cannot remove an event and leave its transfer behind", async () => {
+      const system = await systemAccount();
+      const account = await createUserAccount();
+      const transferId = await prisma.$transaction((tx) =>
+        insertBalancedTransfer(tx, system.id, account.id, 500n),
+      );
+
+      const eventOnly = prisma.$transaction(async (tx) => {
+        await tx.$executeRawUnsafe(`SET LOCAL ROLE wallety_purge`);
+        await tx.$executeRaw`DELETE FROM "outbox_events" WHERE "transferId" = ${transferId}`;
+      });
+
+      await expect(eventOnly).rejects.toThrow(/has no outbox event/);
+      expect(await prisma.outboxEvent.count()).toBe(1);
+    });
+
     it("cannot insert or change anything", async () => {
       const attempt = prisma.$transaction(async (tx) => {
         await tx.$executeRawUnsafe(`SET LOCAL ROLE wallety_purge`);
         await insertTransfer(tx);
+      });
+
+      await expect(attempt).rejects.toThrow(/permission denied/);
+    });
+  });
+
+  describe("outbox: an event exists if and only if its transfer exists", () => {
+    it("rejects, at commit, a balanced transfer without an event", async () => {
+      const system = await systemAccount();
+      const account = await createUserAccount();
+
+      const withoutEvent = prisma.$transaction(async (tx) => {
+        const transferId = await insertTransfer(tx, "system", randomUUID(), { withEvent: false });
+        await insertEntry(tx, transferId, system.id, -1000n);
+        await insertEntry(tx, transferId, account.id, 1000n);
+      });
+
+      await expect(withoutEvent).rejects.toThrow(/has no outbox event/);
+      expect(await prisma.transfer.count()).toBe(0);
+      expect(await prisma.ledgerEntry.count()).toBe(0);
+    });
+
+    it("rejects an event that points to no transfer", async () => {
+      const orphan = prisma.$transaction((tx) => insertEvent(tx, randomUUID()));
+
+      await expect(orphan).rejects.toThrow(/outbox_events_transferId_fkey/);
+      expect(await prisma.outboxEvent.count()).toBe(0);
+    });
+
+    it("rejects a second event for the same transfer", async () => {
+      const system = await systemAccount();
+      const account = await createUserAccount();
+      const transferId = await prisma.$transaction((tx) =>
+        insertBalancedTransfer(tx, system.id, account.id, 500n),
+      );
+
+      await expect(prisma.$transaction((tx) => insertEvent(tx, transferId))).rejects.toThrow();
+      expect(await prisma.outboxEvent.count()).toBe(1);
+    });
+  });
+
+  describe("as the delivery role (wallety_dispatch)", () => {
+    async function postedTransfer() {
+      const system = await systemAccount();
+      const account = await createUserAccount();
+      return prisma.$transaction((tx) => insertBalancedTransfer(tx, system.id, account.id, 500n));
+    }
+
+    it("can read events and record the outcome of a delivery", async () => {
+      await postedTransfer();
+
+      await prisma.$transaction(async (tx) => {
+        await tx.$executeRawUnsafe(`SET LOCAL ROLE wallety_dispatch`);
+        const pending = await tx.$queryRawUnsafe<{ id: string }[]>(`SELECT "id" FROM "outbox_events"`);
+        expect(pending).toHaveLength(1);
+        await tx.$executeRawUnsafe(
+          `UPDATE "outbox_events" SET "status" = 'DELIVERED', "attempts" = 1, "deliveredAt" = now()`,
+        );
+      });
+
+      expect(await prisma.outboxEvent.count({ where: { status: "DELIVERED" } })).toBe(1);
+    });
+
+    it.each([
+      [`SELECT * FROM "ledger_entries"`],
+      [`SELECT * FROM "transfers"`],
+      [`SELECT * FROM "accounts"`],
+      [`UPDATE "outbox_events" SET "payload" = '{"tampered":true}'`],
+      [`UPDATE "outbox_events" SET "id" = 'another-id'`],
+      [`DELETE FROM "outbox_events"`],
+      [`INSERT INTO "outbox_events" ("id", "type", "transferId", "sandboxId", "payload") VALUES ('x', 't', 'y', 'z', '{}')`],
+    ])("cannot run: %s", async (statement) => {
+      await postedTransfer();
+
+      const attempt = prisma.$transaction(async (tx) => {
+        await tx.$executeRawUnsafe(`SET LOCAL ROLE wallety_dispatch`);
+        await tx.$executeRawUnsafe(statement);
       });
 
       await expect(attempt).rejects.toThrow(/permission denied/);

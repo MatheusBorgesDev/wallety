@@ -26,15 +26,26 @@ enum TransferStatus {
   POSTED
 }
 
+enum OutboxStatus {
+  PENDING
+  DELIVERED
+  FAILED
+}
+
 // The unit of isolation and of cleanup: users only transact inside their own sandbox,
 // so a sandbox can be removed as a whole without unbalancing anyone else's ledger.
 model Sandbox {
-  id        String      @id @default(uuid())
-  kind      SandboxKind
-  expiresAt DateTime?
-  createdAt DateTime    @default(now())
-  users     User[]
-  accounts  Account[]
+  id                   String           @id @default(uuid())
+  kind                 SandboxKind
+  expiresAt            DateTime?
+  // How many of the next webhook deliveries the built-in receiver must refuse, so that
+  // retries can be observed. Only the receiver reads and decrements it.
+  receiverFailuresLeft Int              @default(0)
+  createdAt            DateTime         @default(now())
+  users                User[]
+  accounts             Account[]
+  outboxEvents         OutboxEvent[]
+  webhookReceipts      WebhookReceipt[]
 
   @@map("sandboxes")
 }
@@ -87,6 +98,7 @@ model Transfer {
   createdAt        DateTime       @default(now())
   createdBy        User?          @relation(fields: [createdByUserId], references: [id], onDelete: Restrict)
   entries          LedgerEntry[]
+  outboxEvent      OutboxEvent?
 
   @@unique([idempotencyScope, idempotencyKey])
   @@index([createdByUserId])
@@ -107,4 +119,43 @@ model LedgerEntry {
   @@index([accountId, createdAt, id])
   @@index([transferId])
   @@map("ledger_entries")
+}
+
+// Transactional outbox: one event per posted transfer, written in the same transaction as
+// the ledger entries. A separate process delivers it over HTTP and records the outcome.
+model OutboxEvent {
+  // The event id. Receivers deduplicate on it; it never changes between delivery attempts.
+  id            String       @id @default(uuid())
+  type          String
+  transferId    String       @unique
+  sandboxId     String
+  // The exact request body, stored once so every attempt sends and signs the same bytes.
+  payload       String
+  status        OutboxStatus @default(PENDING)
+  attempts      Int          @default(0)
+  nextAttemptAt DateTime     @default(now())
+  lastError     String?
+  deliveredAt   DateTime?
+  createdAt     DateTime     @default(now())
+  transfer      Transfer     @relation(fields: [transferId], references: [id], onDelete: Restrict)
+  sandbox       Sandbox      @relation(fields: [sandboxId], references: [id], onDelete: Restrict)
+
+  @@index([status, nextAttemptAt])
+  @@index([sandboxId, createdAt])
+  @@map("outbox_events")
+}
+
+// What the built-in webhook receiver accepted. One row per event id: a repeated
+// delivery of the same event only increases the counter.
+model WebhookReceipt {
+  eventId      String   @id
+  sandboxId    String
+  type         String
+  firstAttempt Int
+  deliveries   Int      @default(1)
+  receivedAt   DateTime @default(now())
+  sandbox      Sandbox  @relation(fields: [sandboxId], references: [id], onDelete: Restrict)
+
+  @@index([sandboxId])
+  @@map("webhook_receipts")
 }

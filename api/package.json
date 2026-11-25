@@ -15,7 +15,7 @@
     "typecheck": "tsc --noEmit",
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "vitest run --project unit",
-    "test:integration": "sh scripts/migrate-test-db.sh && vitest run --project integration",
+    "test:integration": "sh scripts/migrate-test-db.sh && VITEST_MAX_WORKERS=1 vitest run --project integration",
     "test:watch": "vitest"
   },
   "dependencies": {

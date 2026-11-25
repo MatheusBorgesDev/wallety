@@ -7,7 +7,11 @@ const testDatabaseUrl =
 
 export default defineConfig({
   test: {
-    env: { DATABASE_URL: testDatabaseUrl },
+    env: {
+      DATABASE_URL: testDatabaseUrl,
+      // A fixed value for tests only; real environments provide their own secret.
+      WEBHOOK_SIGNING_SECRET: "test-signing-secret-with-enough-length",
+    },
     projects: [
       {
         extends: true,

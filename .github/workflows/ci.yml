@@ -113,8 +113,81 @@ jobs:
           test "$uid" != "0"
       - name: Record the image size
         run: |
-          bytes=$(docker image inspect wallety-api:local --format '{{.Size}}')
-          echo "Image size: $bytes bytes ($((bytes / 1000000)) MB), from docker image inspect" | tee -a "$GITHUB_STEP_SUMMARY"
+          reported=$(docker image inspect wallety-api:local --format '{{.Size}}')
+          compressed=$(docker save wallety-api:local | gzip -c | wc -c)
+          {
+            echo "Image size reported by docker image inspect: $reported bytes"
+            echo "Image size as a gzip-compressed archive (docker save | gzip): $compressed bytes"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Stop the stack
         if: always()
         run: docker compose down -v
+
+  deploy:
+    name: Deploy to production
+    # Runs only for pushes to main, only after every check above passed, and only once the
+    # Google Cloud project is configured (see infra/gcp-setup.sh).
+    needs: [lint-typecheck, unit, integration, image]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.GCP_PROJECT_ID != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write # exchanges the GitHub OIDC token for short-lived Google credentials; no stored key
+    defaults:
+      run:
+        working-directory: .
+    env:
+      SERVICE: wallety-api
+      DB_SECRET: wallety-database-url
+      IMAGE: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/wallety/api:${{ github.sha }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOYER_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+      - name: Build and push the image
+        run: |
+          gcloud auth configure-docker "${{ vars.GCP_REGION }}-docker.pkg.dev" --quiet
+          docker build -t "$IMAGE" api
+          docker push "$IMAGE"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+      - name: Apply database migrations
+        working-directory: api
+        run: |
+          npm ci
+          database_url="$(gcloud secrets versions access latest --secret="$DB_SECRET" --project="${{ vars.GCP_PROJECT_ID }}")"
+          echo "::add-mask::$database_url"
+          DATABASE_URL="$database_url" npx prisma migrate deploy
+      - name: Release the new revision
+        run: |
+          gcloud run deploy "$SERVICE" \
+            --project="${{ vars.GCP_PROJECT_ID }}" \
+            --region="${{ vars.GCP_REGION }}" \
+            --image="$IMAGE" \
+            --service-account="${{ vars.GCP_RUNTIME_SERVICE_ACCOUNT }}" \
+            --update-secrets="DATABASE_URL=${DB_SECRET}:latest" \
+            --max-instances=2 \
+            --memory=512Mi \
+            --cpu=1 \
+            --quiet
+      - name: Smoke test in production
+        run: |
+          url="$(gcloud run services describe "$SERVICE" --project="${{ vars.GCP_PROJECT_ID }}" --region="${{ vars.GCP_REGION }}" --format='value(status.url)')"
+          for attempt in $(seq 1 12); do
+            status=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$url/health" || true)
+            echo "attempt $attempt: GET /health -> $status"
+            if [ "$status" = "200" ]; then exit 0; fi
+            sleep 5
+          done
+          exit 1

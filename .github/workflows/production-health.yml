@@ -1,0 +1,28 @@
+name: Production health
+
+# Hourly check that the production API can reach its database. The uptime monitor calls
+# /health/live every few minutes without touching the database; this one is spaced out on
+# purpose, so a scale-to-zero database is not kept awake all month.
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  health:
+    name: API reaches the database
+    if: vars.SERVICE_URL != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: GET /health
+        run: |
+          for attempt in $(seq 1 6); do
+            status=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "${{ vars.SERVICE_URL }}/health" || true)
+            echo "attempt $attempt: GET /health -> $status"
+            if [ "$status" = "200" ]; then exit 0; fi
+            sleep 10
+          done
+          exit 1

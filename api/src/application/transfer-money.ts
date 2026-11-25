@@ -43,7 +43,10 @@ export async function transferMoney(ledger: Ledger, command: TransferCommand): P
       return { transferId: claim.existing.transferId, replayed: true };
     }
 
-    const accounts = await tx.loadAccountsForTransfer([command.fromAccountId, command.toAccountId]);
+    const accounts = await tx.loadAccountsForTransfer({
+      debitAccountId: command.fromAccountId,
+      creditAccountId: command.toAccountId,
+    });
     const from = findAccount(accounts, command.fromAccountId);
     const to = findAccount(accounts, command.toAccountId);
     ensureActorMayDebit(command.actor, from);

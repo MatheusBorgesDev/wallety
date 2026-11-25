@@ -19,8 +19,9 @@ export type LedgerTransaction = {
     requestHash: string;
     createdByUserId: string | null;
   }): Promise<IdempotencyClaim>;
-  // Loads the accounts a transfer touches, protected against concurrent transfers.
-  loadAccountsForTransfer(accountIds: string[]): Promise<AccountRecord[]>;
+  // Loads the two accounts of a transfer, protected against concurrent transfers. An id
+  // that does not exist is simply absent from the result.
+  loadAccountsForTransfer(input: { debitAccountId: string; creditAccountId: string }): Promise<AccountRecord[]>;
   balanceOf(accountId: string): Promise<bigint>;
   appendEntries(transferId: string, entries: EntryDraft[]): Promise<void>;
   // Records an outgoing event in the same unit of work. Delivering it is someone else's job:

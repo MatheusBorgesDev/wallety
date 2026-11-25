@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterAll } from "vitest";
 import { prisma } from "../db/prisma.js";
 import { CrossSandboxTransfer, InsufficientFunds } from "../domain/errors.js";
-import { createPessimisticLedger } from "../infra/db/pessimistic-ledger.js";
+import { ledgerStrategies, ledgerStrategyNames } from "../infra/db/ledger-strategies.js";
 import { resetDb, disconnectDb } from "../test/db.js";
 import {
   balanceOf,
@@ -15,17 +15,6 @@ import { AccountNotFound, IdempotencyKeyReuse } from "./errors.js";
 import type { Ledger } from "./ledger.js";
 import { transferMoney } from "./transfer-money.js";
 
-const ledger = createPessimisticLedger(prisma);
-
-// A ledger whose unit of work fails after the use case did everything, right before commit.
-const ledgerThatFailsBeforeCommit: Ledger = {
-  transaction: (work) =>
-    ledger.transaction(async (tx) => {
-      await work(tx);
-      throw new Error("connection lost before commit");
-    }),
-};
-
 async function twoUsersInOneSandbox() {
   const sandbox = await createSandbox();
   const alice = await createUserWithAccount(sandbox.id);
@@ -33,7 +22,18 @@ async function twoUsersInOneSandbox() {
   return { alice, bob };
 }
 
-describe("transferMoney", () => {
+describe.each(ledgerStrategyNames)("transferMoney with the %s ledger", (strategy) => {
+  const ledger = ledgerStrategies[strategy](prisma);
+
+  // A ledger whose unit of work fails after the use case did everything, right before commit.
+  const ledgerThatFailsBeforeCommit: Ledger = {
+    transaction: (work) =>
+      ledger.transaction(async (tx) => {
+        await work(tx);
+        throw new Error("connection lost before commit");
+      }),
+  };
+
   beforeEach(resetDb);
   afterAll(disconnectDb);
 

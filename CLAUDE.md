@@ -4,6 +4,9 @@ Digital wallet API built on a double-entry ledger, with a small web app on top.
 
 ## Layout
 - `api/`: Node 24, Express 5, TypeScript, PostgreSQL through Prisma 7. Dependency versions are pinned.
+- `api/src/domain`, `application`, `infra`: pure rules, use cases and their ports, adapters. The domain and
+  application layers import nothing that does I/O; structural tests enforce it.
+- `api/src/webhooks`, `api/src/worker.ts`: outbox delivery, run as a separate process from the same image.
 - `infra/`: one-time cloud setup scripts.
 - `.github/workflows/`: CI and deployment.
 

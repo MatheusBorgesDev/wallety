@@ -7,10 +7,11 @@ export function notFoundHandler(_req: Request, res: Response) {
 // Four arguments: Express recognizes an error handler by its arity.
 export function errorHandler(
   err: unknown,
-  _req: Request,
+  req: Request,
   res: Response,
   _next: NextFunction,
 ) {
+  req.log.error({ err }, "Unhandled error");
   const message = err instanceof Error ? err.message : "Internal Server Error";
   res.status(500).json({ error: message });
 }

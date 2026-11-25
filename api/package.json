@@ -8,6 +8,8 @@
   },
   "scripts": {
     "dev": "tsx watch --env-file=.env src/server.ts",
+    "build": "prisma generate && tsc -p tsconfig.build.json",
+    "start": "node dist/server.js",
     "generate": "prisma generate",
     "lint": "oxlint --deny-warnings",
     "typecheck": "tsc --noEmit",
@@ -20,7 +22,9 @@
     "@prisma/adapter-pg": "7.10.1",
     "@prisma/client": "7.10.1",
     "express": "5.3.0",
-    "pg": "8.23.1"
+    "pg": "8.23.1",
+    "pino": "10.4.0",
+    "pino-http": "11.0.0"
   },
   "devDependencies": {
     "@types/express": "5.0.6",

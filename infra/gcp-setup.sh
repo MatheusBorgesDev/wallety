@@ -17,7 +17,8 @@ DEPLOYER="wallety-deployer"
 RUNTIME="wallety-api"
 POOL="github"
 PROVIDER="wallety"
-DB_SECRET="wallety-database-url"
+DB_SECRET="wallety-database-url"                      # runtime: a login that is a member of wallety_app
+MIGRATION_DB_SECRET="wallety-migration-database-url"  # migrations: the database owner
 
 DEPLOYER_EMAIL="${DEPLOYER}@${PROJECT_ID}.iam.gserviceaccount.com"
 RUNTIME_EMAIL="${RUNTIME}@${PROJECT_ID}.iam.gserviceaccount.com"
@@ -40,16 +41,19 @@ exists gcloud iam service-accounts describe "$DEPLOYER_EMAIL" --project="$PROJEC
 exists gcloud iam service-accounts describe "$RUNTIME_EMAIL" --project="$PROJECT_ID" ||
   gcloud iam service-accounts create "$RUNTIME" --project="$PROJECT_ID" --display-name="Wallety API runtime"
 
-echo "==> Database URL secret (empty container; the value is added by hand in the console)"
-exists gcloud secrets describe "$DB_SECRET" --project="$PROJECT_ID" ||
-  gcloud secrets create "$DB_SECRET" --project="$PROJECT_ID" --replication-policy=automatic
+echo "==> Database URL secrets (empty containers; the values are added by hand in the console)"
+for secret in "$DB_SECRET" "$MIGRATION_DB_SECRET"; do
+  exists gcloud secrets describe "$secret" --project="$PROJECT_ID" ||
+    gcloud secrets create "$secret" --project="$PROJECT_ID" --replication-policy=automatic
+done
 
 echo "==> Permissions"
-# Runtime: read the database URL. Deployer: read it too, to run migrations before each release.
-for member in "$RUNTIME_EMAIL" "$DEPLOYER_EMAIL"; do
-  gcloud secrets add-iam-policy-binding "$DB_SECRET" --project="$PROJECT_ID" \
-    --role=roles/secretmanager.secretAccessor --member="serviceAccount:${member}" --condition=None >/dev/null
-done
+# The runtime reads only the restricted connection string. The deployer reads only the
+# owner connection string, to apply migrations before each release.
+gcloud secrets add-iam-policy-binding "$DB_SECRET" --project="$PROJECT_ID" \
+  --role=roles/secretmanager.secretAccessor --member="serviceAccount:${RUNTIME_EMAIL}" --condition=None >/dev/null
+gcloud secrets add-iam-policy-binding "$MIGRATION_DB_SECRET" --project="$PROJECT_ID" \
+  --role=roles/secretmanager.secretAccessor --member="serviceAccount:${DEPLOYER_EMAIL}" --condition=None >/dev/null
 # Deployer: push images, release new revisions, and run them as the runtime account. Nothing else.
 gcloud artifacts repositories add-iam-policy-binding "$REGISTRY" --project="$PROJECT_ID" --location="$REGION" \
   --role=roles/artifactregistry.writer --member="serviceAccount:${DEPLOYER_EMAIL}" >/dev/null
@@ -96,6 +100,7 @@ Done. None of the values below is a secret. Store them as GitHub Actions reposit
   GCP_RUNTIME_SERVICE_ACCOUNT=${RUNTIME_EMAIL}
   SERVICE_URL=$(gcloud run services describe "$SERVICE" --project="$PROJECT_ID" --region="$REGION" --format='value(status.url)')
 
-Remaining manual step: add the database connection string as a new version of the secret
-"${DB_SECRET}" in Secret Manager. It is the only secret and it is stored nowhere else.
+Remaining manual step: add the two database connection strings as new versions of the
+secrets "${DB_SECRET}" and "${MIGRATION_DB_SECRET}" in Secret Manager (see infra/README.md).
+They are the only secrets and they are stored nowhere else.
 SUMMARY

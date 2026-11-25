@@ -3,6 +3,8 @@
 # --- build: full dependencies, Prisma client generation and TypeScript compilation.
 # This stage also carries the Prisma CLI, so it is the image used to run migrations.
 FROM node:24.22.3-bookworm-slim AS build
+# The Prisma CLI needs OpenSSL to talk to the database when it applies migrations.
+RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci

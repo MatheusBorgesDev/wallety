@@ -1,0 +1,84 @@
+name: Concurrency experiment
+
+# Measures every concurrency strategy of the ledger under load, on demand. The raw result is
+# uploaded as an artifact and summarized on the run page.
+on:
+  workflow_dispatch:
+    inputs:
+      duration_seconds:
+        description: Measured seconds per cell
+        default: "10"
+      warmup_seconds:
+        description: Warm-up seconds per cell, not measured
+        default: "3"
+      repetitions:
+        description: Times every cell is measured
+        default: "3"
+      clients:
+        description: Concurrency levels, comma separated
+        default: "4,16,32"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: experiment
+  cancel-in-progress: false
+
+env:
+  # Local-only credentials for the throwaway database of this run; nothing here is a secret.
+  DATABASE_URL: postgresql://wallety:wallety@localhost:5433/wallety_experiment?schema=public
+
+defaults:
+  run:
+    working-directory: api
+
+jobs:
+  experiment:
+    name: Run the experiment
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: wallety
+          POSTGRES_PASSWORD: wallety
+          POSTGRES_DB: wallety_experiment
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U wallety -d wallety_experiment"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+      - run: npm ci
+      - run: npm run generate
+      - run: npx prisma migrate deploy
+      - name: Run every strategy under every workload
+        env:
+          DURATION_SECONDS: ${{ inputs.duration_seconds }}
+          WARMUP_SECONDS: ${{ inputs.warmup_seconds }}
+          EXPERIMENT_REPETITIONS: ${{ inputs.repetitions }}
+          EXPERIMENT_CLIENTS: ${{ inputs.clients }}
+          EXPERIMENT_OUTPUT: experiment-result.json
+        run: |
+          export EXPERIMENT_DURATION_MS=$((DURATION_SECONDS * 1000))
+          export EXPERIMENT_WARMUP_MS=$((WARMUP_SECONDS * 1000))
+          npm run experiment
+      - name: Summarize
+        if: always()
+        run: npm run --silent experiment:report -- experiment-result.json >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: experiment-result-${{ github.run_id }}
+          path: api/experiment-result.json
+          if-no-files-found: error

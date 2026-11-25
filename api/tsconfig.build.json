@@ -5,5 +5,9 @@
     "outDir": "dist",
     "noEmit": false
   },
-  "exclude": ["src/**/*.test.ts", "src/test/**"]
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/test/**",
+    "src/experiment/**"
+  ]
 }

@@ -1,14 +1,14 @@
 import { describe, it, expect, beforeEach, afterAll } from "vitest";
 import { prisma } from "../db/prisma.js";
 import { InsufficientFunds } from "../domain/errors.js";
-import { createPessimisticLedger } from "../infra/db/pessimistic-ledger.js";
+import { ledgerStrategies, ledgerStrategyNames } from "../infra/db/ledger-strategies.js";
 import { resetDb, disconnectDb } from "../test/db.js";
 import { balanceOf, createSandbox, createUserWithAccount, fund, globalSum } from "../test/fixtures.js";
 import { transferMoney } from "./transfer-money.js";
 
-const ledger = createPessimisticLedger(prisma);
+describe.each(ledgerStrategyNames)("transferMoney under concurrency with the %s ledger", (strategy) => {
+  const ledger = ledgerStrategies[strategy](prisma);
 
-describe("transferMoney under concurrency", () => {
   beforeEach(resetDb);
   afterAll(disconnectDb);
 

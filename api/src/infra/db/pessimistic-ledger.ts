@@ -1,17 +1,30 @@
-import type { AccountRecord, Ledger, LedgerTransaction } from "../../application/ledger.js";
+import type { Ledger } from "../../application/ledger.js";
 import type { PrismaClient } from "../../generated/prisma/client.js";
+import { ledgerTransaction, type ProtectAccounts } from "./ledger-transaction.js";
 
-type PrismaTransaction = Parameters<Parameters<PrismaClient["$transaction"]>[0]>[0];
+// Which accounts a transfer locks before reading the balance of the debited one.
+//
+// "both-accounts": SELECT ... FOR UPDATE on every user account of the transfer, in
+// ascending id order. Transfers that cross (A to B, B to A) queue up instead of
+// deadlocking, because both ask for the same lock first.
+//
+// "debited-account": only the account that loses money. Balances are derived, so a credit
+// never reads a balance and needs no lock of its own. The lock is FOR NO KEY UPDATE: the
+// ledger entry inserted for the credited account takes a KEY SHARE lock on that account's
+// row through its foreign key, and FOR UPDATE would block it, which lets crossing
+// transfers deadlock.
+export type LockScope = "both-accounts" | "debited-account";
 
-// Pessimistic locking under READ COMMITTED. Every user account a transfer touches is
-// locked with SELECT ... FOR UPDATE before its balance is read, so two transfers on the
-// same account run one after the other and the second one sees the first one's entries.
-// Locks are taken in ascending id order: transfers that cross (A to B, B to A) queue up
-// instead of deadlocking.
-export function createPessimisticLedger(prisma: PrismaClient): Ledger {
+// Pessimistic locking under READ COMMITTED: two transfers that debit the same account run
+// one after the other, and the second one sees the first one's entries.
+export function createPessimisticLedger(
+  prisma: PrismaClient,
+  options: { lock: LockScope } = { lock: "both-accounts" },
+): Ledger {
+  const protect = options.lock === "both-accounts" ? lockBothAccounts : lockDebitedAccount;
   return {
     transaction: (work) =>
-      prisma.$transaction((tx) => work(ledgerTransaction(tx)), {
+      prisma.$transaction((tx) => work(ledgerTransaction(tx, protect)), {
         isolationLevel: "ReadCommitted",
         maxWait: 10_000,
         timeout: 15_000,
@@ -19,55 +32,21 @@ export function createPessimisticLedger(prisma: PrismaClient): Ledger {
   };
 }
 
-function ledgerTransaction(tx: PrismaTransaction): LedgerTransaction {
-  return {
-    async claimIdempotencyKey({ transferId, scope, key, requestHash, createdByUserId }) {
-      // ON CONFLICT DO NOTHING waits for a concurrent request holding the same key to
-      // finish, then inserts nothing. Exactly one request claims the key.
-      const inserted = await tx.$executeRaw`
-        INSERT INTO "transfers" ("id", "idempotencyScope", "idempotencyKey", "requestHash", "createdByUserId")
-        VALUES (${transferId}, ${scope}, ${key}, ${requestHash}, ${createdByUserId})
-        ON CONFLICT ("idempotencyScope", "idempotencyKey") DO NOTHING`;
-      if (inserted === 1) {
-        return { claimed: true };
-      }
-      const existing = await tx.transfer.findUniqueOrThrow({
-        where: { idempotencyScope_idempotencyKey: { idempotencyScope: scope, idempotencyKey: key } },
-        select: { id: true, requestHash: true },
-      });
-      return { claimed: false, existing: { transferId: existing.id, requestHash: existing.requestHash } };
-    },
+// The system account is never locked: it has no balance rule to protect, and locking it
+// would make every funding transfer in the system wait in a single line.
+const lockBothAccounts: ProtectAccounts = async (tx, accounts) => {
+  const idsToLock = accounts
+    .filter((account) => account.kind === "USER")
+    .map((account) => account.id)
+    .sort();
+  for (const id of idsToLock) {
+    await tx.$queryRaw`SELECT 1 FROM "accounts" WHERE "id" = ${id} FOR UPDATE`;
+  }
+};
 
-    async loadAccountsForTransfer(accountIds) {
-      // Kind, currency, owner and sandbox never change, so they can be read before locking.
-      const accounts: AccountRecord[] = await tx.account.findMany({
-        where: { id: { in: accountIds } },
-        select: { id: true, kind: true, currency: true, sandboxId: true, userId: true },
-      });
-      // The system account is left unlocked: it has no balance rule to protect, and locking
-      // it would make every funding transfer in the system wait in a single line.
-      const idsToLock = accounts
-        .filter((account) => account.kind === "USER")
-        .map((account) => account.id)
-        .sort();
-      for (const id of idsToLock) {
-        await tx.$queryRaw`SELECT 1 FROM "accounts" WHERE "id" = ${id} FOR UPDATE`;
-      }
-      return accounts;
-    },
-
-    async balanceOf(accountId) {
-      const [row] = await tx.$queryRaw<{ balance: string }[]>`
-        SELECT COALESCE(sum("amount"), 0)::text AS balance FROM "ledger_entries" WHERE "accountId" = ${accountId}`;
-      return BigInt(row!.balance);
-    },
-
-    async appendEntries(transferId, entries) {
-      await tx.ledgerEntry.createMany({ data: entries.map((entry) => ({ ...entry, transferId })) });
-    },
-
-    async recordEvent(event) {
-      await tx.outboxEvent.create({ data: event });
-    },
-  };
-}
+const lockDebitedAccount: ProtectAccounts = async (tx, accounts, { debitAccountId }) => {
+  const debited = accounts.find((account) => account.id === debitAccountId);
+  if (debited?.kind === "USER") {
+    await tx.$queryRaw`SELECT 1 FROM "accounts" WHERE "id" = ${debited.id} FOR NO KEY UPDATE`;
+  }
+};

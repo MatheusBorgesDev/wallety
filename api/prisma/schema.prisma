@@ -1,5 +1,5 @@
 // Prisma schema — Wallety API
-// Docs: https://pris.ly/d/prisma-schema
+// Constraints, triggers and privileges that Prisma cannot express live in the SQL migrations.
 
 generator client {
   provider            = "prisma-client"
@@ -12,23 +12,84 @@ datasource db {
   provider = "postgresql"
 }
 
+enum SandboxKind {
+  DEMO
+  REGISTERED
+}
+
+enum AccountKind {
+  USER
+  SYSTEM
+}
+
+enum TransferStatus {
+  POSTED
+}
+
+// The unit of isolation and of cleanup: users only transact inside their own sandbox,
+// so a sandbox can be removed as a whole without unbalancing anyone else's ledger.
+model Sandbox {
+  id        String      @id @default(uuid())
+  kind      SandboxKind
+  expiresAt DateTime?
+  createdAt DateTime    @default(now())
+  users     User[]
+  accounts  Account[]
+
+  @@map("sandboxes")
+}
+
+model User {
+  id           String     @id @default(uuid())
+  sandboxId    String
+  // Null for users that cannot log in, such as the counterpart of a demo sandbox.
+  email        String?    @unique
+  passwordHash String?
+  displayName  String
+  lastLoginAt  DateTime?
+  createdAt    DateTime   @default(now())
+  sandbox      Sandbox    @relation(fields: [sandboxId], references: [id])
+  accounts     Account[]
+  transfers    Transfer[]
+
+  @@index([sandboxId])
+  @@map("users")
+}
+
 model Account {
   id        String        @id @default(uuid())
-  userId    String
-  currency  String
+  kind      AccountKind   @default(USER)
+  name      String
+  currency  String        @db.Char(3)
+  // Both null for a SYSTEM account, both set for a USER account (enforced by a CHECK constraint).
+  userId    String?
+  sandboxId String?
   createdAt DateTime      @default(now())
+  user      User?         @relation(fields: [userId], references: [id], onDelete: Restrict)
+  sandbox   Sandbox?      @relation(fields: [sandboxId], references: [id], onDelete: Restrict)
   entries   LedgerEntry[]
 
+  @@index([userId])
+  @@index([sandboxId])
   @@map("accounts")
 }
 
 model Transfer {
-  id             String        @id @default(uuid())
-  idempotencyKey String        @unique
-  status         String
-  createdAt      DateTime      @default(now())
-  entries        LedgerEntry[]
+  id               String         @id @default(uuid())
+  // The idempotency key is unique per scope (the requesting user, or "system"),
+  // so one user can neither collide with nor probe another user's keys.
+  idempotencyScope String
+  idempotencyKey   String
+  // Hash of the request, to detect a key reused with a different payload.
+  requestHash      String
+  status           TransferStatus @default(POSTED)
+  createdByUserId  String?
+  createdAt        DateTime       @default(now())
+  createdBy        User?          @relation(fields: [createdByUserId], references: [id], onDelete: Restrict)
+  entries          LedgerEntry[]
 
+  @@unique([idempotencyScope, idempotencyKey])
+  @@index([createdByUserId])
   @@map("transfers")
 }
 
@@ -36,12 +97,14 @@ model LedgerEntry {
   id         String   @id @default(uuid())
   transferId String
   accountId  String
+  // Signed, in minor units: negative is a debit, positive is a credit.
   amount     BigInt
-  currency   String
+  currency   String   @db.Char(3)
   createdAt  DateTime @default(now())
   transfer   Transfer @relation(fields: [transferId], references: [id])
   account    Account  @relation(fields: [accountId], references: [id])
 
-  @@index([accountId])
+  @@index([accountId, createdAt, id])
+  @@index([transferId])
   @@map("ledger_entries")
 }

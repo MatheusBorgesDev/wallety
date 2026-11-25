@@ -1,5 +1,6 @@
 import type { AccountRef } from "../domain/account.js";
 import type { EntryDraft } from "../domain/entries.js";
+import type { OutboxEventDraft } from "./events.js";
 
 export type AccountRecord = AccountRef & { userId: string | null };
 
@@ -22,6 +23,9 @@ export type LedgerTransaction = {
   loadAccountsForTransfer(accountIds: string[]): Promise<AccountRecord[]>;
   balanceOf(accountId: string): Promise<bigint>;
   appendEntries(transferId: string, entries: EntryDraft[]): Promise<void>;
+  // Records an outgoing event in the same unit of work. Delivering it is someone else's job:
+  // nothing here can reach the network.
+  recordEvent(event: OutboxEventDraft): Promise<void>;
 };
 
 export type Ledger = {

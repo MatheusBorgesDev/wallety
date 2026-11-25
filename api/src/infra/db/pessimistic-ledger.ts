@@ -65,5 +65,9 @@ function ledgerTransaction(tx: PrismaTransaction): LedgerTransaction {
     async appendEntries(transferId, entries) {
       await tx.ledgerEntry.createMany({ data: entries.map((entry) => ({ ...entry, transferId })) });
     },
+
+    async recordEvent(event) {
+      await tx.outboxEvent.create({ data: event });
+    },
   };
 }

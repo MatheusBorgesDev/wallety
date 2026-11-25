@@ -1,3 +1,6 @@
+# `docker compose up` brings up the database, applies the migrations and starts the API.
+# For local development with `npm run dev`, start only the database: `docker compose up -d postgres`.
+# The credentials below are local-only defaults, not secrets.
 services:
   postgres:
     image: postgres:16
@@ -9,6 +12,35 @@ services:
       - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wallety -d wallety"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    build:
+      context: ./api
+      target: build
+    command: ["npx", "prisma", "migrate", "deploy"]
+    environment:
+      DATABASE_URL: postgresql://wallety:wallety@postgres:5432/wallety?schema=public
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    image: wallety-api:local
+    build:
+      context: ./api
+    environment:
+      DATABASE_URL: postgresql://wallety:wallety@postgres:5432/wallety?schema=public
+      PORT: "3000"
+    ports:
+      - "${API_PORT:-3000}:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
 
 volumes:
   pgdata:

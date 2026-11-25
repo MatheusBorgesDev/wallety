@@ -2,8 +2,10 @@
 // Docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  // Emit relative imports with the .js extension so the compiled output runs on plain Node ESM.
+  importFileExtension = "js"
 }
 
 datasource db {

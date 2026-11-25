@@ -22,7 +22,11 @@ services:
     build:
       context: ./api
       target: build
-    command: ["npx", "prisma", "migrate", "deploy"]
+    # Apply the migrations as the database owner, then create the local login role of the API.
+    command:
+      - sh
+      - -c
+      - npx prisma migrate deploy && npx prisma db execute --file prisma/local/login-roles.sql
     environment:
       DATABASE_URL: postgresql://wallety:wallety@postgres:5432/wallety?schema=public
     depends_on:
@@ -34,7 +38,8 @@ services:
     build:
       context: ./api
     environment:
-      DATABASE_URL: postgresql://wallety:wallety@postgres:5432/wallety?schema=public
+      # The API connects with a role that cannot update or delete ledger rows.
+      DATABASE_URL: postgresql://wallety_api:wallety_api@postgres:5432/wallety?schema=public
       PORT: "3000"
     ports:
       - "${API_PORT:-3000}:3000"

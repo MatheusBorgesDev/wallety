@@ -4,7 +4,7 @@ export function notFoundHandler(_req: Request, res: Response) {
   res.status(404).json({ error: "Not Found" });
 }
 
-// 4 args: o Express identifica isto como error handler pela aridade.
+// Four arguments: Express recognizes an error handler by its arity.
 export function errorHandler(
   err: unknown,
   _req: Request,

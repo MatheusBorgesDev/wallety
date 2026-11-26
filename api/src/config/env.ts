@@ -39,6 +39,9 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): AppEnv {
 export type ApiEnv = AppEnv & {
   jwtSecret: string;
   accessTokenTtlSeconds: number;
+  // Where to tell the delivery process that a transfer was posted. Unset: nobody is told,
+  // which is right where that process polls the outbox on its own.
+  dispatch: { url: string; auth: "none" | "google-id-token" } | undefined;
 };
 
 const DEFAULT_ACCESS_TOKEN_TTL_SECONDS = 2 * 60 * 60;
@@ -55,5 +58,10 @@ export function loadApiEnv(source: NodeJS.ProcessEnv = process.env): ApiEnv {
   if (!Number.isInteger(accessTokenTtlSeconds) || accessTokenTtlSeconds <= 0) {
     throw new Error(`Invalid ACCESS_TOKEN_TTL_SECONDS: ${source.ACCESS_TOKEN_TTL_SECONDS}`);
   }
-  return { ...loadEnv(source), jwtSecret, accessTokenTtlSeconds };
+  const dispatchAuth = source.DISPATCH_AUTH ?? "none";
+  if (dispatchAuth !== "none" && dispatchAuth !== "google-id-token") {
+    throw new Error(`Invalid DISPATCH_AUTH: ${source.DISPATCH_AUTH}`);
+  }
+  const dispatch: ApiEnv["dispatch"] = source.DISPATCH_URL ? { url: source.DISPATCH_URL, auth: dispatchAuth } : undefined;
+  return { ...loadEnv(source), jwtSecret, accessTokenTtlSeconds, dispatch };
 }

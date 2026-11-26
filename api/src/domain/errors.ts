@@ -42,3 +42,15 @@ export class InsufficientFunds extends DomainError {
     super(`Insufficient funds in account ${accountId}`);
   }
 }
+
+export class AccountLimitReached extends DomainError {
+  constructor(limit: number) {
+    super(`A user can hold at most ${limit} accounts`);
+  }
+}
+
+export class UnsupportedCurrency extends DomainError {
+  constructor(currency: string) {
+    super(`Unsupported currency: ${currency}`);
+  }
+}

@@ -65,6 +65,18 @@ describe("loadApiEnv", () => {
     expect(() => loadApiEnv({ ...complete, JWT_SECRET: "short-secret" })).not.toThrow(/short-secret/);
   });
 
+  it("tells the delivery process only when its address is configured", () => {
+    expect(loadApiEnv(api).dispatch).toBeUndefined();
+    expect(loadApiEnv({ ...api, DISPATCH_URL: "http://worker:3001" }).dispatch).toEqual({
+      url: "http://worker:3001",
+      auth: "none",
+    });
+    expect(loadApiEnv({ ...api, DISPATCH_URL: "https://w.example", DISPATCH_AUTH: "google-id-token" }).dispatch?.auth).toBe(
+      "google-id-token",
+    );
+    expect(() => loadApiEnv({ ...api, DISPATCH_URL: "https://w.example", DISPATCH_AUTH: "magic" })).toThrow(/DISPATCH_AUTH/);
+  });
+
   it("refuses a token lifetime that is not a positive number of seconds", () => {
     expect(() => loadApiEnv({ ...api, ACCESS_TOKEN_TTL_SECONDS: "soon" })).toThrow(/ACCESS_TOKEN_TTL_SECONDS/);
     expect(loadApiEnv({ ...api, ACCESS_TOKEN_TTL_SECONDS: "600" }).accessTokenTtlSeconds).toBe(600);

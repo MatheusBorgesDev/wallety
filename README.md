@@ -6,11 +6,19 @@ A digital wallet API built on a double-entry ledger. The goal is an API where mo
 destroyed or corrupted, even under concurrent transfers and repeated requests, with a small web app on top.
 
 **Status: work in progress.** Nothing is deployed yet. This README describes what exists today and is updated
-as each phase lands.
+as features land.
 
 ## What exists today
 
-- An Express 5 + TypeScript API with `GET /health` (checks the database) and `GET /health/live` (does not).
+- A versioned REST API (`/v1`) on Express 5 and TypeScript: registration and login, accounts, statements,
+  transfers and webhook events. Every route is declared once, with zod schemas, and that declaration validates
+  the request, registers the handler and generates the OpenAPI 3.1 document. Swagger UI at `/docs`.
+- Authorization proven per route: for every `/v1` route that takes a signed-in user, an integration test shows
+  that one user cannot read or move what belongs to another, and that someone else's resource is answered
+  exactly like one that does not exist (`404`). A route missing from that matrix fails the build.
+- Argon2id password hashes, short-lived bearer tokens, and rate limits on login and registration counted in
+  PostgreSQL, answered with `429` and `Retry-After`.
+- `GET /health` (checks the database) and `GET /health/live` (does not).
 - Structured JSON logs, one line per request with a correlation id; headers and bodies are never logged.
 - A multi-stage Dockerfile whose runtime image has no shell and runs as a non-root user.
 - A double-entry ledger: transfers with idempotency keys and three interchangeable concurrency strategies
@@ -24,8 +32,7 @@ as each phase lands.
 
 ## What is planned for v1
 
-A versioned REST API with a generated OpenAPI document, authorization tests for every endpoint, a demo login,
-a web app and continuous deployment.
+A demo login whose data removes itself, a web app and continuous deployment.
 
 ## SERIALIZABLE versus pessimistic locking, measured
 
@@ -55,6 +62,10 @@ docker compose up --build
 curl http://localhost:3000/health
 ```
 
+Then open http://localhost:3000/docs: register through `POST /v1/auth/register`, paste the returned
+`accessToken` into **Authorize**, and try the other routes. A new user starts with a funded account and a
+sample recipient to transfer to.
+
 Set `API_PORT` to use another host port.
 
 For development, with Node 24 and Docker:
@@ -62,7 +73,7 @@ For development, with Node 24 and Docker:
 ```sh
 docker compose up -d postgres
 cd api
-cp .env.example .env   # then set USER, PASSWORD and the signing secret
+cp .env.example .env   # then set USER, PASSWORD and the two secrets
 npm ci
 npm run generate
 npx prisma migrate deploy

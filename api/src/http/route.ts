@@ -2,7 +2,7 @@ import express, { type Express, type Request, type RequestHandler } from "expres
 import { z } from "zod";
 import { HttpError } from "./errors.js";
 
-export type AuthenticatedUser = { id: string; sandboxId: string };
+export type AuthenticatedUser = { id: string; sandboxId: string; sessionExpiresAt: Date };
 
 export type RateLimitRule = { key: string; limit: number; windowSeconds: number };
 

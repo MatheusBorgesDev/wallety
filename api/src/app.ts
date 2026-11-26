@@ -1,20 +1,28 @@
 import cors from "cors";
 import express, { type Express } from "express";
 import helmet from "helmet";
-import { loadEnv } from "./config/env.js";
+import { loadApiEnv } from "./config/env.js";
 import { prisma } from "./db/prisma.js";
+import { createAuthenticator } from "./http/authenticate.js";
 import { mountDocs } from "./http/docs.js";
-import { errorHandler, HttpError, notFoundHandler } from "./http/errors.js";
+import { errorHandler, notFoundHandler } from "./http/errors.js";
 import { buildOpenApiDocument } from "./http/openapi.js";
 import { mountRoutes, type AnyRoute } from "./http/route.js";
+import { createRateLimiter } from "./infra/db/rate-limiter.js";
+import { createUserDirectory, createWorkspace } from "./infra/db/workspace.js";
+import { createArgon2Hasher } from "./infra/security/argon2-hasher.js";
+import { createJwtTokens } from "./infra/security/jwt-tokens.js";
 import { createHttpLogger } from "./observability/http-logger.js";
 import { createLogger, type Logger } from "./observability/logger.js";
 import { healthRoutes } from "./routes/health.js";
+import { authRoutes, defaultAuthRateLimits, type AuthRateLimits } from "./routes/v1/auth.js";
 import { transferPostedWebhook, webhookReceiverRoute } from "./routes/webhook-receiver.js";
 
 type AppOptions = {
   logger?: Logger;
   webhookSigningSecret?: string;
+  authRateLimits?: AuthRateLimits;
+  now?: () => Date;
 };
 
 const apiDescription = [
@@ -28,12 +36,23 @@ const apiDescription = [
 ].join("\n");
 
 export function createApp(options: AppOptions = {}): Express {
-  const env = loadEnv();
+  const env = loadApiEnv();
   const logger = options.logger ?? defaultLogger();
   const webhookSigningSecret = options.webhookSigningSecret ?? env.webhookSigningSecret;
 
+  const now = options.now ?? (() => new Date());
+  const tokens = createJwtTokens({ secret: env.jwtSecret, ttlSeconds: env.accessTokenTtlSeconds, now });
+
   const routes: AnyRoute[] = [
     ...healthRoutes(prisma),
+    ...authRoutes({
+      prisma,
+      workspace: createWorkspace(prisma),
+      directory: createUserDirectory(prisma),
+      hasher: createArgon2Hasher(),
+      tokens,
+      rateLimits: options.authRateLimits ?? defaultAuthRateLimits,
+    }),
     webhookReceiverRoute({ prisma, signingSecret: webhookSigningSecret }),
   ];
   const document = buildOpenApiDocument(routes, [transferPostedWebhook], {
@@ -61,10 +80,8 @@ export function createApp(options: AppOptions = {}): Express {
     );
   }
   mountRoutes(app, routes, {
-    authenticate: async () => {
-      throw new HttpError(401, "unauthorized", "Authentication required");
-    },
-    hitRateLimit: async () => null,
+    authenticate: createAuthenticator({ prisma, tokens, now }),
+    hitRateLimit: createRateLimiter(prisma, now),
   });
   mountDocs(app, document);
   app.use(notFoundHandler);

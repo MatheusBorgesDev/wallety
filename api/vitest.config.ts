@@ -11,6 +11,7 @@ export default defineConfig({
       DATABASE_URL: testDatabaseUrl,
       // A fixed value for tests only; real environments provide their own secret.
       WEBHOOK_SIGNING_SECRET: "test-signing-secret-with-enough-length",
+      JWT_SECRET: "test-jwt-secret-with-enough-length-0123",
     },
     projects: [
       {

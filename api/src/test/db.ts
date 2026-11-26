@@ -4,6 +4,7 @@ import { prisma } from "../db/prisma.js";
 // SYSTEM accounts that the migrations seed.
 export async function resetDb() {
   await prisma.$transaction([
+    prisma.$executeRawUnsafe(`DELETE FROM "rate_limit_hits"`),
     prisma.$executeRawUnsafe(`DELETE FROM "webhook_receipts"`),
     prisma.$executeRawUnsafe(`DELETE FROM "outbox_events"`),
     prisma.$executeRawUnsafe(`DELETE FROM "ledger_entries"`),

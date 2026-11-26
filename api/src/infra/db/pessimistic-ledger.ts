@@ -34,7 +34,7 @@ export function createPessimisticLedger(
 
 // The system account is never locked: it has no balance rule to protect, and locking it
 // would make every funding transfer in the system wait in a single line.
-const lockBothAccounts: ProtectAccounts = async (tx, accounts) => {
+export const lockBothAccounts: ProtectAccounts = async (tx, accounts) => {
   const idsToLock = accounts
     .filter((account) => account.kind === "USER")
     .map((account) => account.id)

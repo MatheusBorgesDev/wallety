@@ -23,6 +23,7 @@ DB_SECRET="wallety-database-url"                      # runtime: a login that is
 MIGRATION_DB_SECRET="wallety-migration-database-url"  # migrations: the database owner
 DISPATCH_DB_SECRET="wallety-dispatch-database-url"    # delivery process: a member of wallety_dispatch
 SIGNING_SECRET="wallety-webhook-signing-secret"       # generated below, never shown
+JWT_SECRET="wallety-jwt-secret"                       # generated below, never shown
 
 DEPLOYER_EMAIL="${DEPLOYER}@${PROJECT_ID}.iam.gserviceaccount.com"
 RUNTIME_EMAIL="${RUNTIME}@${PROJECT_ID}.iam.gserviceaccount.com"
@@ -54,12 +55,14 @@ for secret in "$DB_SECRET" "$MIGRATION_DB_SECRET" "$DISPATCH_DB_SECRET"; do
     gcloud secrets create "$secret" --project="$PROJECT_ID" --replication-policy=automatic
 done
 
-echo "==> Webhook signing secret (generated here; no one needs to see it)"
-if ! exists gcloud secrets describe "$SIGNING_SECRET" --project="$PROJECT_ID"; then
-  gcloud secrets create "$SIGNING_SECRET" --project="$PROJECT_ID" --replication-policy=automatic
-  openssl rand -hex 32 | tr -d '\n' |
-    gcloud secrets versions add "$SIGNING_SECRET" --project="$PROJECT_ID" --data-file=- >/dev/null
-fi
+echo "==> Webhook signing secret and access token secret (generated here; no one needs to see them)"
+for secret in "$SIGNING_SECRET" "$JWT_SECRET"; do
+  if ! exists gcloud secrets describe "$secret" --project="$PROJECT_ID"; then
+    gcloud secrets create "$secret" --project="$PROJECT_ID" --replication-policy=automatic
+    openssl rand -hex 32 | tr -d '\n' |
+      gcloud secrets versions add "$secret" --project="$PROJECT_ID" --data-file=- >/dev/null
+  fi
+done
 
 echo "==> Permissions"
 grant_secret() { # <secret> <service account email>
@@ -74,6 +77,8 @@ grant_secret "$MIGRATION_DB_SECRET" "$DEPLOYER_EMAIL"
 # The API verifies webhook signatures (built-in receiver); the delivery process creates them.
 grant_secret "$SIGNING_SECRET" "$RUNTIME_EMAIL"
 grant_secret "$SIGNING_SECRET" "$WORKER_EMAIL"
+# Only the API signs and verifies access tokens.
+grant_secret "$JWT_SECRET" "$RUNTIME_EMAIL"
 # Deployer: push images, release new revisions, and run them as the runtime account. Nothing else.
 gcloud artifacts repositories add-iam-policy-binding "$REGISTRY" --project="$PROJECT_ID" --location="$REGION" \
   --role=roles/artifactregistry.writer --member="serviceAccount:${DEPLOYER_EMAIL}" >/dev/null

@@ -159,3 +159,16 @@ model WebhookReceipt {
   @@index([sandboxId])
   @@map("webhook_receipts")
 }
+
+// Fixed-window counters for rate limiting, kept in the database so a limit holds across
+// instances and restarts.
+model RateLimitHit {
+  // What is being limited, already hashed where it derives from personal data.
+  key         String
+  windowStart DateTime
+  count       Int      @default(1)
+
+  @@id([key, windowStart])
+  @@index([windowStart])
+  @@map("rate_limit_hits")
+}

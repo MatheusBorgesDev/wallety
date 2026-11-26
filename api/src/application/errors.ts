@@ -13,3 +13,17 @@ export class IdempotencyKeyReuse extends DomainError {
     super("This idempotency key was already used with a different request");
   }
 }
+
+export class EmailAlreadyRegistered extends DomainError {
+  constructor() {
+    super("This email is already registered");
+  }
+}
+
+// One error for an unknown email and for a wrong password: the caller must not be able
+// to tell which of the two happened.
+export class InvalidCredentials extends DomainError {
+  constructor() {
+    super("Invalid email or password");
+  }
+}

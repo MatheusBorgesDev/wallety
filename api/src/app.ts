@@ -8,20 +8,25 @@ import { mountDocs } from "./http/docs.js";
 import { errorHandler, notFoundHandler } from "./http/errors.js";
 import { buildOpenApiDocument } from "./http/openapi.js";
 import { mountRoutes, type AnyRoute } from "./http/route.js";
+import { createPessimisticLedger } from "./infra/db/pessimistic-ledger.js";
 import { createRateLimiter } from "./infra/db/rate-limiter.js";
+import { createWalletQueries } from "./infra/db/wallet-queries.js";
 import { createUserDirectory, createWorkspace } from "./infra/db/workspace.js";
 import { createArgon2Hasher } from "./infra/security/argon2-hasher.js";
 import { createJwtTokens } from "./infra/security/jwt-tokens.js";
+import { createDispatchNotifier, type DispatchNotifier } from "./infra/webhooks/dispatch-notifier.js";
 import { createHttpLogger } from "./observability/http-logger.js";
 import { createLogger, type Logger } from "./observability/logger.js";
 import { healthRoutes } from "./routes/health.js";
 import { authRoutes, defaultAuthRateLimits, type AuthRateLimits } from "./routes/v1/auth.js";
+import { walletRoutes } from "./routes/v1/wallet.js";
 import { transferPostedWebhook, webhookReceiverRoute } from "./routes/webhook-receiver.js";
 
 type AppOptions = {
   logger?: Logger;
   webhookSigningSecret?: string;
   authRateLimits?: AuthRateLimits;
+  notifyDispatcher?: DispatchNotifier;
   now?: () => Date;
 };
 
@@ -52,6 +57,11 @@ export function createApp(options: AppOptions = {}): Express {
       hasher: createArgon2Hasher(),
       tokens,
       rateLimits: options.authRateLimits ?? defaultAuthRateLimits,
+    }),
+    ...walletRoutes({
+      queries: createWalletQueries(prisma),
+      ledger: createPessimisticLedger(prisma),
+      notifyDispatcher: options.notifyDispatcher ?? (env.dispatch ? createDispatchNotifier(env.dispatch) : undefined),
     }),
     webhookReceiverRoute({ prisma, signingSecret: webhookSigningSecret }),
   ];

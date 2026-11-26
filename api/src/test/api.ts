@@ -44,3 +44,31 @@ export async function register(app: Express, overrides: { email?: string; passwo
 }
 
 export const bearer = (user: SignedInUser) => ({ Authorization: `Bearer ${user.token}` });
+
+export type Wallet = SignedInUser & {
+  // The funded account opened at registration.
+  accountId: string;
+  // The account of the sample recipient in the same sandbox.
+  recipientAccountId: string;
+};
+
+// A registered user together with the ids a test needs to move money.
+export async function registerWithWallet(app: Express): Promise<Wallet> {
+  const user = await register(app);
+  const accounts = await request(app).get("/v1/accounts").set(bearer(user));
+  const recipients = await request(app).get("/v1/recipients").set(bearer(user));
+  return {
+    ...user,
+    accountId: accounts.body.accounts[0].id,
+    recipientAccountId: recipients.body.recipients[0].accountId,
+  };
+}
+
+export function postTransfer(
+  app: Express,
+  user: SignedInUser,
+  body: { fromAccountId: string; toAccountId: string; amount: string },
+  idempotencyKey: string = randomUUID(),
+) {
+  return request(app).post("/v1/transfers").set(bearer(user)).set("Idempotency-Key", idempotencyKey).send(body);
+}

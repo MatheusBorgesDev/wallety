@@ -106,8 +106,9 @@ jobs:
           status=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/health)
           echo "GET /health -> $status"
           test "$status" = "200"
-      - name: A transfer posted through the stack is delivered to the webhook receiver
-        run: docker compose run --rm --no-deps api dist/smoke/webhook-smoke.js
+      - name: Register, transfer twice with one key, and see the event delivered after a simulated failure
+        # Through the public API only, with the API on its restricted database login.
+        run: docker compose run --rm --no-deps -e SMOKE_BASE_URL=http://api:3000 api dist/smoke/api-smoke.js
       - name: Image runs as a non-root user
         run: |
           uid=$(docker run --rm --entrypoint /nodejs/bin/node wallety-api:local -e "console.log(process.getuid())")
@@ -184,7 +185,7 @@ jobs:
             --image="$IMAGE" \
             --service-account="${{ vars.GCP_RUNTIME_SERVICE_ACCOUNT }}" \
             --update-secrets="DATABASE_URL=${DB_SECRET}:latest,WEBHOOK_SIGNING_SECRET=${SIGNING_SECRET}:latest,JWT_SECRET=${JWT_SECRET_NAME}:latest" \
-            --set-env-vars="TRUST_PROXY=1" \
+            --update-env-vars="TRUST_PROXY=1" \
             --max-instances=2 \
             --memory=512Mi \
             --cpu=1 \
@@ -206,6 +207,19 @@ jobs:
             --memory=512Mi \
             --cpu=1 \
             --quiet
+      - name: Point the API at the delivery process
+        # The API tells the delivery process about each posted transfer. The address only
+        # exists after the first release of that service, so it is set here and kept afterwards.
+        run: |
+          worker_url="$(gcloud run services describe "$WORKER_SERVICE" --project="${{ vars.GCP_PROJECT_ID }}" --region="${{ vars.GCP_REGION }}" --format='value(status.url)')"
+          current="$(gcloud run services describe "$SERVICE" --project="${{ vars.GCP_PROJECT_ID }}" --region="${{ vars.GCP_REGION }}" --format=json | jq -r '.spec.template.spec.containers[0].env[]? | select(.name == "DISPATCH_URL") | .value')"
+          if [ "$current" != "$worker_url" ]; then
+            gcloud run services update "$SERVICE" \
+              --project="${{ vars.GCP_PROJECT_ID }}" \
+              --region="${{ vars.GCP_REGION }}" \
+              --update-env-vars="DISPATCH_URL=${worker_url},DISPATCH_AUTH=google-id-token" \
+              --quiet
+          fi
       - name: Smoke test in production
         run: |
           url="$(gcloud run services describe "$SERVICE" --project="${{ vars.GCP_PROJECT_ID }}" --region="${{ vars.GCP_REGION }}" --format='value(status.url)')"

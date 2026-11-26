@@ -6,6 +6,7 @@ Digital wallet API built on a double-entry ledger, with a small web app on top.
 - `api/`: Node 24, Express 5, TypeScript, PostgreSQL through Prisma 7. Dependency versions are pinned.
 - `api/src/domain`, `application`, `infra`: pure rules, use cases and their ports, adapters. The domain and
   application layers import nothing that does I/O; structural tests enforce it.
+- `api/src/experiment`: load harness that compares the concurrency strategies; results in `experiments/`.
 - `api/src/webhooks`, `api/src/worker.ts`: outbox delivery, run as a separate process from the same image.
 - `infra/`: one-time cloud setup scripts.
 - `.github/workflows/`: CI and deployment.
@@ -15,6 +16,7 @@ Digital wallet API built on a double-entry ledger, with a small web app on top.
 - `npm run test:unit`: no database needed.
 - `npm run test:integration`: needs `docker compose up -d postgres`. Integration tests are named `*.int.test.ts`.
 - `npm run generate`: after any change to `prisma/schema.prisma`.
+- `npm run experiment`: load experiment over the concurrency strategies. It wipes the database in `DATABASE_URL`.
 - `docker compose up --build` (repository root): database, migrations and API. `API_PORT` sets the host port.
 
 ## Conventions
@@ -30,7 +32,8 @@ Digital wallet API built on a double-entry ledger, with a small web app on top.
 - Money is a `BigInt` in minor units (cents), never a float.
 - Double-entry ledger: the entries of every transfer sum to zero.
 - A balance is derived from the ledger entries; it is never a stored column.
-- Concurrency: pessimistic locking (`SELECT ... FOR UPDATE`) with a consistent lock order.
+- Concurrency: pessimistic locking (`SELECT ... FOR UPDATE`) with a consistent lock order is the default.
+  `api/src/infra/db/ledger-strategies.ts` lists every strategy; the transfer suites run once per strategy.
 - Idempotency: one key per transfer.
 - Transfers are same-currency only in v1.
 - The ledger never creates money: an opening balance is a regular transfer from a system account.

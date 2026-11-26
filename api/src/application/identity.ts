@@ -10,7 +10,8 @@ export type PasswordHasher = {
 export type AccessToken = { token: string; expiresAt: Date };
 
 export type AccessTokens = {
-  issue(userId: string): Promise<AccessToken>;
+  // Lasts the default lifetime unless an exact expiry is given.
+  issue(userId: string, options?: { expiresAt?: Date }): Promise<AccessToken>;
 };
 
 export type SandboxKind = "DEMO" | "REGISTERED";

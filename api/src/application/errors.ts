@@ -14,6 +14,13 @@ export class IdempotencyKeyReuse extends DomainError {
   }
 }
 
+// The deployment holds as many demo sandboxes as it is willing to.
+export class DemoCapacityReached extends DomainError {
+  constructor() {
+    super("Too many demos are running right now; try again later");
+  }
+}
+
 export class EmailAlreadyRegistered extends DomainError {
   constructor() {
     super("This email is already registered");

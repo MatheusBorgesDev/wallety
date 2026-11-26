@@ -57,6 +57,9 @@ export type RouteDefinition<
   // The handler needs the bytes as they arrived, for example to verify a signature over
   // them. The body is then not parsed nor validated; its schema only documents it.
   rawBody?: boolean;
+  // False for an operational route that is not part of the public contract: it is mounted
+  // like any other and left out of the OpenAPI document.
+  documented?: boolean;
   responses: Record<number, ResponseSpec>;
   // Limits checked after validation and before the handler. Every request counts.
   rateLimit?: (input: { ip: string; body: Parsed<B> }) => RateLimitRule[];

@@ -9,6 +9,7 @@ import { errorHandler, notFoundHandler } from "./http/errors.js";
 import { buildOpenApiDocument } from "./http/openapi.js";
 import { mountRoutes, type AnyRoute } from "./http/route.js";
 import { createPessimisticLedger } from "./infra/db/pessimistic-ledger.js";
+import { createPurger, type Purger } from "./infra/db/purge.js";
 import { createRateLimiter } from "./infra/db/rate-limiter.js";
 import { createWalletQueries } from "./infra/db/wallet-queries.js";
 import { createUserDirectory, createWorkspace } from "./infra/db/workspace.js";
@@ -18,6 +19,7 @@ import { createDispatchNotifier, type DispatchNotifier } from "./infra/webhooks/
 import { createHttpLogger } from "./observability/http-logger.js";
 import { createLogger, type Logger } from "./observability/logger.js";
 import { healthRoutes } from "./routes/health.js";
+import { internalRoutes } from "./routes/internal.js";
 import { authRoutes, defaultAuthRateLimits, type AuthRateLimits } from "./routes/v1/auth.js";
 import { walletRoutes } from "./routes/v1/wallet.js";
 import { transferPostedWebhook, webhookReceiverRoute } from "./routes/webhook-receiver.js";
@@ -27,6 +29,9 @@ type AppOptions = {
   webhookSigningSecret?: string;
   authRateLimits?: AuthRateLimits;
   notifyDispatcher?: DispatchNotifier;
+  maxDemoSandboxes?: number;
+  // Replaces the cleanup built from the environment; null turns it off.
+  purger?: Purger | null;
   now?: () => Date;
 };
 
@@ -48,8 +53,11 @@ export function createApp(options: AppOptions = {}): Express {
   const now = options.now ?? (() => new Date());
   const tokens = createJwtTokens({ secret: env.jwtSecret, ttlSeconds: env.accessTokenTtlSeconds, now });
 
+  const purger = options.purger === undefined ? (env.purge ? createPurger(env.purge.databaseUrl) : null) : options.purger;
+
   const routes: AnyRoute[] = [
     ...healthRoutes(prisma),
+    ...(purger && env.purge ? internalRoutes({ purger, purgeSecret: env.purge.secret, now }) : []),
     ...authRoutes({
       prisma,
       workspace: createWorkspace(prisma),
@@ -57,6 +65,9 @@ export function createApp(options: AppOptions = {}): Express {
       hasher: createArgon2Hasher(),
       tokens,
       rateLimits: options.authRateLimits ?? defaultAuthRateLimits,
+      demoPolicy: { maxDemoSandboxes: options.maxDemoSandboxes ?? env.maxDemoSandboxes },
+      purgeSome: purger ? () => purger.purge({ now: now(), maxSandboxes: 5 }) : undefined,
+      now,
     }),
     ...walletRoutes({
       queries: createWalletQueries(prisma),

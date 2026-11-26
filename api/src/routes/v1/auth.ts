@@ -1,10 +1,11 @@
 import { createHash } from "node:crypto";
 import { z } from "zod";
-import { EmailAlreadyRegistered, InvalidCredentials } from "../../application/errors.js";
+import { DemoCapacityReached, EmailAlreadyRegistered, InvalidCredentials } from "../../application/errors.js";
 import type { AccessToken, AccessTokens, PasswordHasher, UserDirectory, Workspace } from "../../application/identity.js";
 import { normalizeEmail } from "../../application/identity.js";
 import { login } from "../../application/login.js";
 import { registerUser } from "../../application/register-user.js";
+import { startDemo, type DemoPolicy } from "../../application/start-demo.js";
 import type { PrismaClient } from "../../generated/prisma/client.js";
 import { HttpError } from "../../http/errors.js";
 import { defineRoute, type AnyRoute } from "../../http/route.js";
@@ -12,12 +13,14 @@ import { defineRoute, type AnyRoute } from "../../http/route.js";
 export type RateLimit = { limit: number; windowSeconds: number };
 
 export type AuthRateLimits = {
+  demoPerIp: RateLimit;
   registerPerIp: RateLimit;
   loginPerIp: RateLimit;
   loginPerEmail: RateLimit;
 };
 
 export const defaultAuthRateLimits: AuthRateLimits = {
+  demoPerIp: { limit: 5, windowSeconds: 3600 },
   registerPerIp: { limit: 5, windowSeconds: 3600 },
   loginPerIp: { limit: 20, windowSeconds: 300 },
   loginPerEmail: { limit: 5, windowSeconds: 900 },
@@ -30,6 +33,10 @@ type AuthDependencies = {
   hasher: PasswordHasher;
   tokens: AccessTokens;
   rateLimits: AuthRateLimits;
+  demoPolicy: DemoPolicy;
+  // Removes a few expired sandboxes. Absent where no cleanup login is configured.
+  purgeSome?: () => Promise<unknown>;
+  now: () => Date;
 };
 
 const emailSchema = z.email().max(254);
@@ -93,6 +100,48 @@ export function authRoutes(deps: AuthDependencies): AnyRoute[] {
         } catch (error) {
           if (error instanceof EmailAlreadyRegistered) {
             throw new HttpError(409, "email_already_registered", error.message);
+          }
+          throw error;
+        }
+      },
+    }),
+
+    defineRoute({
+      method: "post",
+      path: "/v1/auth/demo",
+      tag: "Auth",
+      summary: "Start a demo: no sign-up, removed after 24 hours",
+      description:
+        "Creates a throwaway user in a sandbox of its own, with a funded account and a sample recipient, and " +
+        "signs it in. The token lasts as long as the sandbox. After 24 hours the token is refused at once and " +
+        "the sandbox is removed with everything in it.",
+      access: "public",
+      rateLimit: ({ ip }) => [{ key: `demo:ip:${fingerprint(ip)}`, ...rateLimits.demoPerIp }],
+      responses: {
+        201: {
+          description: "The demo user was created and is signed in",
+          schema: sessionSchema.extend({ sandboxExpiresAt: z.iso.datetime() }).meta({ id: "DemoSession" }),
+        },
+        503: { description: "Too many demos are running; try again later", headers: { "Retry-After": "Seconds to wait" } },
+      },
+      handler: async ({ log }) => {
+        // Every new demo first makes room by removing some expired ones.
+        await deps.purgeSome?.().catch((error: unknown) => log.warn({ err: error }, "Opportunistic cleanup failed"));
+        try {
+          const demo = await startDemo({
+            workspace: deps.workspace,
+            tokens: deps.tokens,
+            countDemoSandboxes: () => deps.prisma.sandbox.count({ where: { kind: "DEMO" } }),
+            policy: deps.demoPolicy,
+            now: deps.now,
+          });
+          return {
+            status: 201,
+            body: { ...session(demo.user, demo.accessToken), sandboxExpiresAt: demo.sandboxExpiresAt.toISOString() },
+          };
+        } catch (error) {
+          if (error instanceof DemoCapacityReached) {
+            throw new HttpError(503, "demo_capacity_reached", error.message, { headers: { "Retry-After": "600" } });
           }
           throw error;
         }

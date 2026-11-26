@@ -77,6 +77,21 @@ describe("loadApiEnv", () => {
     expect(() => loadApiEnv({ ...api, DISPATCH_URL: "https://w.example", DISPATCH_AUTH: "magic" })).toThrow(/DISPATCH_AUTH/);
   });
 
+  it("enables the cleanup only with both its database login and its secret", () => {
+    const purge = { PURGE_DATABASE_URL: "postgres://purger", PURGE_SECRET: "a-purge-secret-with-at-least-32-chars" };
+    expect(loadApiEnv(api).purge).toBeUndefined();
+    expect(loadApiEnv({ ...api, ...purge }).purge).toEqual({ databaseUrl: "postgres://purger", secret: purge.PURGE_SECRET });
+    expect(() => loadApiEnv({ ...api, PURGE_SECRET: purge.PURGE_SECRET })).toThrow(/set together/);
+    expect(() => loadApiEnv({ ...api, PURGE_DATABASE_URL: "postgres://purger" })).toThrow(/set together/);
+    expect(() => loadApiEnv({ ...api, ...purge, PURGE_SECRET: "short" })).toThrow(/at least 32/);
+  });
+
+  it("caps demo sandboxes at 200 unless told otherwise", () => {
+    expect(loadApiEnv(api).maxDemoSandboxes).toBe(200);
+    expect(loadApiEnv({ ...api, MAX_DEMO_SANDBOXES: "3" }).maxDemoSandboxes).toBe(3);
+    expect(() => loadApiEnv({ ...api, MAX_DEMO_SANDBOXES: "many" })).toThrow(/MAX_DEMO_SANDBOXES/);
+  });
+
   it("refuses a token lifetime that is not a positive number of seconds", () => {
     expect(() => loadApiEnv({ ...api, ACCESS_TOKEN_TTL_SECONDS: "soon" })).toThrow(/ACCESS_TOKEN_TTL_SECONDS/);
     expect(loadApiEnv({ ...api, ACCESS_TOKEN_TTL_SECONDS: "600" }).accessTokenTtlSeconds).toBe(600);

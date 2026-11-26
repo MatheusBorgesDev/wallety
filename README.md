@@ -18,6 +18,10 @@ as features land.
   exactly like one that does not exist (`404`). A route missing from that matrix fails the build.
 - Argon2id password hashes, short-lived bearer tokens, and rate limits on login and registration counted in
   PostgreSQL, answered with `429` and `Retry-After`.
+- A demo entry, `POST /v1/auth/demo`: no sign-up, a sandbox of its own with a funded account, gone after 24
+  hours. The token is refused the moment the sandbox expires; the rows are removed afterwards, a whole sandbox
+  per transaction, on the only database login allowed to delete. The ledger still sums to zero after a removal,
+  and the database would refuse one that left it otherwise.
 - `GET /health` (checks the database) and `GET /health/live` (does not).
 - Structured JSON logs, one line per request with a correlation id; headers and bodies are never logged.
 - A multi-stage Dockerfile whose runtime image has no shell and runs as a non-root user.
@@ -32,7 +36,7 @@ as features land.
 
 ## What is planned for v1
 
-A demo login whose data removes itself, a web app and continuous deployment.
+A web app and continuous deployment.
 
 ## SERIALIZABLE versus pessimistic locking, measured
 
@@ -62,9 +66,9 @@ docker compose up --build
 curl http://localhost:3000/health
 ```
 
-Then open http://localhost:3000/docs: register through `POST /v1/auth/register`, paste the returned
-`accessToken` into **Authorize**, and try the other routes. A new user starts with a funded account and a
-sample recipient to transfer to.
+Then open http://localhost:3000/docs: call `POST /v1/auth/demo` (or register through
+`POST /v1/auth/register`), paste the returned `accessToken` into **Authorize**, and try the other routes. A new
+user starts with a funded account and a sample recipient to transfer to.
 
 Set `API_PORT` to use another host port.
 

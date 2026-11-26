@@ -42,6 +42,10 @@ export type ApiEnv = AppEnv & {
   // Where to tell the delivery process that a transfer was posted. Unset: nobody is told,
   // which is right where that process polls the outbox on its own.
   dispatch: { url: string; auth: "none" | "google-id-token" } | undefined;
+  // The cleanup of expired sandboxes: its own database login, the only one that may delete,
+  // and the secret a scheduler presents to trigger it. Unset: nothing is ever removed.
+  purge: { databaseUrl: string; secret: string } | undefined;
+  maxDemoSandboxes: number;
 };
 
 const DEFAULT_ACCESS_TOKEN_TTL_SECONDS = 2 * 60 * 60;
@@ -63,5 +67,18 @@ export function loadApiEnv(source: NodeJS.ProcessEnv = process.env): ApiEnv {
     throw new Error(`Invalid DISPATCH_AUTH: ${source.DISPATCH_AUTH}`);
   }
   const dispatch: ApiEnv["dispatch"] = source.DISPATCH_URL ? { url: source.DISPATCH_URL, auth: dispatchAuth } : undefined;
-  return { ...loadEnv(source), jwtSecret, accessTokenTtlSeconds, dispatch };
+  const purgeDatabaseUrl = source.PURGE_DATABASE_URL;
+  const purgeSecret = source.PURGE_SECRET;
+  if (Boolean(purgeDatabaseUrl) !== Boolean(purgeSecret)) {
+    throw new Error("PURGE_DATABASE_URL and PURGE_SECRET must be set together");
+  }
+  if (purgeSecret && purgeSecret.length < MIN_SECRET_LENGTH) {
+    throw new Error(`PURGE_SECRET must have at least ${MIN_SECRET_LENGTH} characters`);
+  }
+  const purge = purgeDatabaseUrl && purgeSecret ? { databaseUrl: purgeDatabaseUrl, secret: purgeSecret } : undefined;
+  const maxDemoSandboxes = source.MAX_DEMO_SANDBOXES ? Number(source.MAX_DEMO_SANDBOXES) : 200;
+  if (!Number.isInteger(maxDemoSandboxes) || maxDemoSandboxes < 0) {
+    throw new Error(`Invalid MAX_DEMO_SANDBOXES: ${source.MAX_DEMO_SANDBOXES}`);
+  }
+  return { ...loadEnv(source), jwtSecret, accessTokenTtlSeconds, dispatch, purge, maxDemoSandboxes };
 }

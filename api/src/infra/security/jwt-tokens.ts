@@ -17,9 +17,11 @@ export function createJwtTokens(options: { secret: string; ttlSeconds: number; n
   const now = options.now ?? (() => new Date());
 
   return {
-    async issue(userId) {
+    async issue(userId, issueOptions = {}) {
       const issuedAt = Math.floor(now().getTime() / 1000);
-      const expiresAt = issuedAt + options.ttlSeconds;
+      const expiresAt = issueOptions.expiresAt
+        ? Math.floor(issueOptions.expiresAt.getTime() / 1000)
+        : issuedAt + options.ttlSeconds;
       const token = await new SignJWT({})
         .setProtectedHeader({ alg: ALGORITHM })
         .setSubject(userId)

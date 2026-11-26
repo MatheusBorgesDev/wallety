@@ -108,7 +108,7 @@ jobs:
           test "$status" = "200"
       - name: Register, transfer twice with one key, and see the event delivered after a simulated failure
         # Through the public API only, with the API on its restricted database login.
-        run: docker compose run --rm --no-deps -e SMOKE_BASE_URL=http://api:3000 api dist/smoke/api-smoke.js
+        run: docker compose run --rm --no-deps -e SMOKE_BASE_URL=http://api:3000 -e SMOKE_PURGE_SECRET=local-only-cleanup-secret-not-a-secret-000 api dist/smoke/api-smoke.js
       - name: Image runs as a non-root user
         run: |
           uid=$(docker run --rm --entrypoint /nodejs/bin/node wallety-api:local -e "console.log(process.getuid())")
@@ -152,6 +152,8 @@ jobs:
       DISPATCH_DB_SECRET: wallety-dispatch-database-url
       SIGNING_SECRET: wallety-webhook-signing-secret
       JWT_SECRET_NAME: wallety-jwt-secret
+      PURGE_DB_SECRET: wallety-purge-database-url
+      PURGE_SECRET_NAME: wallety-purge-secret
       IMAGE: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/wallety/api:${{ github.sha }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -184,7 +186,7 @@ jobs:
             --region="${{ vars.GCP_REGION }}" \
             --image="$IMAGE" \
             --service-account="${{ vars.GCP_RUNTIME_SERVICE_ACCOUNT }}" \
-            --update-secrets="DATABASE_URL=${DB_SECRET}:latest,WEBHOOK_SIGNING_SECRET=${SIGNING_SECRET}:latest,JWT_SECRET=${JWT_SECRET_NAME}:latest" \
+            --update-secrets="DATABASE_URL=${DB_SECRET}:latest,WEBHOOK_SIGNING_SECRET=${SIGNING_SECRET}:latest,JWT_SECRET=${JWT_SECRET_NAME}:latest,PURGE_DATABASE_URL=${PURGE_DB_SECRET}:latest,PURGE_SECRET=${PURGE_SECRET_NAME}:latest" \
             --update-env-vars="TRUST_PROXY=1" \
             --max-instances=2 \
             --memory=512Mi \

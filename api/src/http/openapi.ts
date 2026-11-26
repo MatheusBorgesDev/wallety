@@ -61,7 +61,7 @@ export function buildOpenApiDocument(routes: AnyRoute[], webhooks: WebhookSpec[]
     description: "Access token returned by the login and registration routes",
   });
 
-  for (const route of routes) {
+  for (const route of routes.filter((candidate) => candidate.documented !== false)) {
     const responses = Object.fromEntries(
       Object.entries(route.responses).map(([status, spec]) => [status, responseEntry(spec)]),
     );

@@ -33,6 +33,8 @@ Digital wallet API built on a double-entry ledger, with a small web app on top.
   OpenAPI document or, under `/v1`, from the authorization matrix (`api/src/test/authorization-matrix.ts`).
 - Queries take the caller's identity and filter by it; someone else's resource is a `404`, never a `403`.
 - Money crosses the API as a string of an integer in minor units.
+- Removal is by whole sandbox, through `api/src/infra/db/purge.ts`, on the cleanup login. A new table that
+  holds sandbox data needs its `GRANT`s in the migration and a `DELETE` there.
 - Never state more than the facts support. Numbers are measured, with date and method, never estimated.
 
 ## Domain rules

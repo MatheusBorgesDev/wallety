@@ -8,6 +8,7 @@ import type { AuthRateLimits } from "../routes/v1/auth.js";
 
 // Limits high enough that a suite never trips them by accident.
 export const relaxedRateLimits: AuthRateLimits = {
+  demoPerIp: { limit: 100_000, windowSeconds: 3600 },
   registerPerIp: { limit: 100_000, windowSeconds: 3600 },
   loginPerIp: { limit: 100_000, windowSeconds: 300 },
   loginPerEmail: { limit: 100_000, windowSeconds: 900 },
@@ -71,4 +72,21 @@ export function postTransfer(
   idempotencyKey: string = randomUUID(),
 ) {
   return request(app).post("/v1/transfers").set(bearer(user)).set("Idempotency-Key", idempotencyKey).send(body);
+}
+
+// A demo user together with the ids a test needs to move money.
+export async function startDemo(app: Express): Promise<Wallet & { sandboxExpiresAt: string }> {
+  const response = await request(app).post("/v1/auth/demo");
+  if (response.status !== 201) {
+    throw new Error(`Demo failed: ${response.status} ${JSON.stringify(response.body)}`);
+  }
+  const user = { token: response.body.accessToken, userId: response.body.user.id, email: "" };
+  const accounts = await request(app).get("/v1/accounts").set(bearer(user));
+  const recipients = await request(app).get("/v1/recipients").set(bearer(user));
+  return {
+    ...user,
+    accountId: accounts.body.accounts[0].id,
+    recipientAccountId: recipients.body.recipients[0].accountId,
+    sandboxExpiresAt: response.body.sandboxExpiresAt,
+  };
 }

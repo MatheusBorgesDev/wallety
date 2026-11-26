@@ -1,0 +1,2892 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-11-25T23:41:08.037Z",
+  "finishedAt": "2026-11-26T00:01:08.235Z",
+  "source": {
+    "repository": "MatheusBorgesDev/wallety",
+    "commit": "b9307d6dbed342cfd69014079950e07e2a7a3c17",
+    "runId": "45720506403",
+    "runAttempt": "1"
+  },
+  "environment": {
+    "postgresVersion": "16.16 (Debian 16.16-1.pgdg13+1)",
+    "postgresSettings": {
+      "deadlock_timeout": "1s",
+      "default_transaction_isolation": "read committed",
+      "fsync": "on",
+      "max_connections": "100",
+      "max_pred_locks_per_transaction": "64",
+      "shared_buffers": "128MB",
+      "synchronous_commit": "on"
+    },
+    "node": "v24.22.3",
+    "platform": "linux 7.0.0-1020-azure",
+    "arch": "x64",
+    "cpuModel": "AMD EPYC 9V74 80-Core Processor",
+    "cpus": 4,
+    "totalMemoryBytes": 16759435264,
+    "runnerImage": "ubuntu26 20261116.202.1"
+  },
+  "config": {
+    "strategies": [
+      "pessimistic-both",
+      "pessimistic-debit",
+      "serializable"
+    ],
+    "workloads": [
+      "high-contention",
+      "low-contention",
+      "mixed"
+    ],
+    "clients": [
+      4,
+      16,
+      32
+    ],
+    "repetitions": 3,
+    "warmupMs": 3000,
+    "durationMs": 10000,
+    "openingBalance": "1000000000",
+    "maxTransferAmount": 100
+  },
+  "cells": [
+    {
+      "strategy": "pessimistic-both",
+      "workload": "high-contention",
+      "clients": 4,
+      "repetition": 1,
+      "measuredMs": 10000,
+      "committed": 2833,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 283.3,
+      "latencyMs": {
+        "p50": 11.12,
+        "p95": 24.18,
+        "p99": 119.93,
+        "max": 295.32
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 3262,
+        "expectedTransfers": 3262,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-debit",
+      "workload": "high-contention",
+      "clients": 4,
+      "repetition": 1,
+      "measuredMs": 10000,
+      "committed": 3036,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 303.6,
+      "latencyMs": {
+        "p50": 10.32,
+        "p95": 22.12,
+        "p99": 85.69,
+        "max": 265.02
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 4023,
+        "expectedTransfers": 4023,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "serializable",
+      "workload": "high-contention",
+      "clients": 4,
+      "repetition": 1,
+      "measuredMs": 10000,
+      "committed": 1941,
+      "rejected": 0,
+      "failed": 41,
+      "failuresByCode": {
+        "40001": 41
+      },
+      "retries": 1198,
+      "retriesByCode": {
+        "40001": 1198
+      },
+      "committedAfterRetry": 6,
+      "throughputPerSecond": 194.1,
+      "latencyMs": {
+        "p50": 3.63,
+        "p95": 6.71,
+        "p99": 32.5,
+        "max": 315.88
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 2681,
+        "expectedTransfers": 2681,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-debit",
+      "workload": "high-contention",
+      "clients": 16,
+      "repetition": 1,
+      "measuredMs": 10000,
+      "committed": 4872,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 487.2,
+      "latencyMs": {
+        "p50": 27.58,
+        "p95": 70.83,
+        "p99": 127.29,
+        "max": 173.63
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 6260,
+        "expectedTransfers": 6260,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "serializable",
+      "workload": "high-contention",
+      "clients": 16,
+      "repetition": 1,
+      "measuredMs": 10000,
+      "committed": 1641,
+      "rejected": 0,
+      "failed": 2,
+      "failuresByCode": {
+        "40001": 2
+      },
+      "retries": 5326,
+      "retriesByCode": {
+        "40001": 5326
+      },
+      "committedAfterRetry": 1083,
+      "throughputPerSecond": 164.1,
+      "latencyMs": {
+        "p50": 41.85,
+        "p95": 405.72,
+        "p99": 651.12,
+        "max": 1039.16
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 2192,
+        "expectedTransfers": 2192,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-both",
+      "workload": "high-contention",
+      "clients": 16,
+      "repetition": 1,
+      "measuredMs": 10000,
+      "committed": 2758,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 275.8,
+      "latencyMs": {
+        "p50": 54.31,
+        "p95": 141.63,
+        "p99": 227.59,
+        "max": 306
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 3702,
+        "expectedTransfers": 3702,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "serializable",
+      "workload": "high-contention",
+      "clients": 32,
+      "repetition": 1,
+      "measuredMs": 10000,
+      "committed": 707,
+      "rejected": 0,
+      "failed": 59,
+      "failuresByCode": {
+        "40001": 59
+      },
+      "retries": 6684,
+      "retriesByCode": {
+        "40001": 6684
+      },
+      "committedAfterRetry": 590,
+      "throughputPerSecond": 70.7,
+      "latencyMs": {
+        "p50": 223.89,
+        "p95": 1069.78,
+        "p99": 1319.82,
+        "max": 1652.33
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 999,
+        "expectedTransfers": 999,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-both",
+      "workload": "high-contention",
+      "clients": 32,
+      "repetition": 1,
+      "measuredMs": 10000,
+      "committed": 2390,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 239,
+      "latencyMs": {
+        "p50": 129.02,
+        "p95": 435.76,
+        "p99": 591.66,
+        "max": 638.97
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 3277,
+        "expectedTransfers": 3277,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-debit",
+      "workload": "high-contention",
+      "clients": 32,
+      "repetition": 1,
+      "measuredMs": 10000,
+      "committed": 4606,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 460.6,
+      "latencyMs": {
+        "p50": 55.33,
+        "p95": 195.99,
+        "p99": 332.3,
+        "max": 370.82
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 6221,
+        "expectedTransfers": 6221,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-both",
+      "workload": "low-contention",
+      "clients": 4,
+      "repetition": 1,
+      "measuredMs": 10000,
+      "committed": 2545,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 254.5,
+      "latencyMs": {
+        "p50": 6.69,
+        "p95": 53.16,
+        "p99": 260.9,
+        "max": 376.26
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 4520,
+        "expectedTransfers": 4520,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-debit",
+      "workload": "low-contention",
+      "clients": 4,
+      "repetition": 1,
+      "measuredMs": 10000,
+      "committed": 3780,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 378,
+      "latencyMs": {
+        "p50": 6.06,
+        "p95": 21.14,
+        "p99": 173.85,
+        "max": 340.44
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 5872,
+        "expectedTransfers": 5872,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "serializable",
+      "workload": "low-contention",
+      "clients": 4,
+      "repetition": 1,
+      "measuredMs": 10000,
+      "committed": 4729,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 28,
+      "retriesByCode": {
+        "40001": 28
+      },
+      "committedAfterRetry": 28,
+      "throughputPerSecond": 472.9,
+      "latencyMs": {
+        "p50": 5.49,
+        "p95": 11.17,
+        "p99": 103.39,
+        "max": 230.42
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 6982,
+        "expectedTransfers": 6982,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-debit",
+      "workload": "low-contention",
+      "clients": 16,
+      "repetition": 1,
+      "measuredMs": 10000,
+      "committed": 6300,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 630,
+      "latencyMs": {
+        "p50": 21.19,
+        "p95": 39.59,
+        "p99": 100.54,
+        "max": 168.33
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 9163,
+        "expectedTransfers": 9163,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "serializable",
+      "workload": "low-contention",
+      "clients": 16,
+      "repetition": 1,
+      "measuredMs": 10000,
+      "committed": 5153,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 213,
+      "retriesByCode": {
+        "40001": 213
+      },
+      "committedAfterRetry": 133,
+      "throughputPerSecond": 515.3,
+      "latencyMs": {
+        "p50": 19.32,
+        "p95": 69.84,
+        "p99": 180.22,
+        "max": 568.94
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 7866,
+        "expectedTransfers": 7866,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-both",
+      "workload": "low-contention",
+      "clients": 16,
+      "repetition": 1,
+      "measuredMs": 10000,
+      "committed": 4488,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 448.8,
+      "latencyMs": {
+        "p50": 23.9,
+        "p95": 81.45,
+        "p99": 217.68,
+        "max": 420.32
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 6800,
+        "expectedTransfers": 6800,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "serializable",
+      "workload": "low-contention",
+      "clients": 32,
+      "repetition": 1,
+      "measuredMs": 10000,
+      "committed": 5985,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 615,
+      "retriesByCode": {
+        "40001": 615
+      },
+      "committedAfterRetry": 361,
+      "throughputPerSecond": 598.5,
+      "latencyMs": {
+        "p50": 41.05,
+        "p95": 114.84,
+        "p99": 181.99,
+        "max": 310.19
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 8598,
+        "expectedTransfers": 8598,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-both",
+      "workload": "low-contention",
+      "clients": 32,
+      "repetition": 1,
+      "measuredMs": 10000,
+      "committed": 4915,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 491.5,
+      "latencyMs": {
+        "p50": 49.66,
+        "p95": 137.22,
+        "p99": 217.39,
+        "max": 383.03
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 7674,
+        "expectedTransfers": 7674,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-debit",
+      "workload": "low-contention",
+      "clients": 32,
+      "repetition": 1,
+      "measuredMs": 10000,
+      "committed": 5470,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 547,
+      "latencyMs": {
+        "p50": 45.75,
+        "p95": 124.89,
+        "p99": 200.35,
+        "max": 243.32
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 8102,
+        "expectedTransfers": 8102,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-both",
+      "workload": "mixed",
+      "clients": 4,
+      "repetition": 1,
+      "measuredMs": 10000,
+      "committed": 3620,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 362,
+      "latencyMs": {
+        "p50": 6.73,
+        "p95": 16.93,
+        "p99": 151.81,
+        "max": 233.87
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 5655,
+        "expectedTransfers": 5655,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-debit",
+      "workload": "mixed",
+      "clients": 4,
+      "repetition": 1,
+      "measuredMs": 10000,
+      "committed": 4251,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 425.1,
+      "latencyMs": {
+        "p50": 6.05,
+        "p95": 10.21,
+        "p99": 111.47,
+        "max": 370.51
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 6775,
+        "expectedTransfers": 6775,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "serializable",
+      "workload": "mixed",
+      "clients": 4,
+      "repetition": 1,
+      "measuredMs": 10000,
+      "committed": 3179,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 1625,
+      "retriesByCode": {
+        "40001": 1625
+      },
+      "committedAfterRetry": 699,
+      "throughputPerSecond": 317.9,
+      "latencyMs": {
+        "p50": 5.24,
+        "p95": 43.87,
+        "p99": 141.64,
+        "max": 564.58
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 5362,
+        "expectedTransfers": 5362,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-debit",
+      "workload": "mixed",
+      "clients": 16,
+      "repetition": 1,
+      "measuredMs": 10000,
+      "committed": 5946,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 594.6,
+      "latencyMs": {
+        "p50": 16.63,
+        "p95": 72.63,
+        "p99": 113.79,
+        "max": 375.81
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 8296,
+        "expectedTransfers": 8296,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "serializable",
+      "workload": "mixed",
+      "clients": 16,
+      "repetition": 1,
+      "measuredMs": 10000,
+      "committed": 2551,
+      "rejected": 0,
+      "failed": 5,
+      "failuresByCode": {
+        "40001": 5
+      },
+      "retries": 4421,
+      "retriesByCode": {
+        "40001": 4421
+      },
+      "committedAfterRetry": 857,
+      "throughputPerSecond": 255.1,
+      "latencyMs": {
+        "p50": 15.34,
+        "p95": 299.1,
+        "p99": 642.26,
+        "max": 1073.69
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 4443,
+        "expectedTransfers": 4443,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-both",
+      "workload": "mixed",
+      "clients": 16,
+      "repetition": 1,
+      "measuredMs": 10000,
+      "committed": 3681,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 368.1,
+      "latencyMs": {
+        "p50": 10.56,
+        "p95": 190.52,
+        "p99": 307.67,
+        "max": 394.68
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 6170,
+        "expectedTransfers": 6170,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "serializable",
+      "workload": "mixed",
+      "clients": 32,
+      "repetition": 1,
+      "measuredMs": 10000,
+      "committed": 1168,
+      "rejected": 0,
+      "failed": 61,
+      "failuresByCode": {
+        "40001": 61
+      },
+      "retries": 6237,
+      "retriesByCode": {
+        "40001": 6237
+      },
+      "committedAfterRetry": 542,
+      "throughputPerSecond": 116.8,
+      "latencyMs": {
+        "p50": 41.66,
+        "p95": 928.6,
+        "p99": 1317.53,
+        "max": 1536.44
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 2597,
+        "expectedTransfers": 2597,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-both",
+      "workload": "mixed",
+      "clients": 32,
+      "repetition": 1,
+      "measuredMs": 10000,
+      "committed": 5127,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 512.7,
+      "latencyMs": {
+        "p50": 9.57,
+        "p95": 243.26,
+        "p99": 317.2,
+        "max": 989.27
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 7108,
+        "expectedTransfers": 7108,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-debit",
+      "workload": "mixed",
+      "clients": 32,
+      "repetition": 1,
+      "measuredMs": 10000,
+      "committed": 6380,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 638,
+      "latencyMs": {
+        "p50": 20.7,
+        "p95": 164.95,
+        "p99": 200.32,
+        "max": 271.55
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 9344,
+        "expectedTransfers": 9344,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-both",
+      "workload": "high-contention",
+      "clients": 4,
+      "repetition": 2,
+      "measuredMs": 10000,
+      "committed": 2023,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 202.3,
+      "latencyMs": {
+        "p50": 15.32,
+        "p95": 28.61,
+        "p99": 216.2,
+        "max": 347.53
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 3116,
+        "expectedTransfers": 3116,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-debit",
+      "workload": "high-contention",
+      "clients": 4,
+      "repetition": 2,
+      "measuredMs": 10000,
+      "committed": 3907,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 390.7,
+      "latencyMs": {
+        "p50": 8.91,
+        "p95": 18.18,
+        "p99": 26.19,
+        "max": 338.23
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 5107,
+        "expectedTransfers": 5107,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "serializable",
+      "workload": "high-contention",
+      "clients": 4,
+      "repetition": 2,
+      "measuredMs": 10000,
+      "committed": 1526,
+      "rejected": 0,
+      "failed": 15,
+      "failuresByCode": {
+        "40001": 15
+      },
+      "retries": 1464,
+      "retriesByCode": {
+        "40001": 1464
+      },
+      "committedAfterRetry": 125,
+      "throughputPerSecond": 152.6,
+      "latencyMs": {
+        "p50": 5.04,
+        "p95": 82.21,
+        "p99": 362.53,
+        "max": 718.28
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 2128,
+        "expectedTransfers": 2128,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-debit",
+      "workload": "high-contention",
+      "clients": 16,
+      "repetition": 2,
+      "measuredMs": 10000,
+      "committed": 4739,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 473.9,
+      "latencyMs": {
+        "p50": 28.02,
+        "p95": 74.5,
+        "p99": 104.08,
+        "max": 171.45
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 6388,
+        "expectedTransfers": 6388,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "serializable",
+      "workload": "high-contention",
+      "clients": 16,
+      "repetition": 2,
+      "measuredMs": 10000,
+      "committed": 1722,
+      "rejected": 0,
+      "failed": 2,
+      "failuresByCode": {
+        "40001": 2
+      },
+      "retries": 5391,
+      "retriesByCode": {
+        "40001": 5391
+      },
+      "committedAfterRetry": 1122,
+      "throughputPerSecond": 172.2,
+      "latencyMs": {
+        "p50": 38.49,
+        "p95": 362.51,
+        "p99": 686.71,
+        "max": 985.5
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 2287,
+        "expectedTransfers": 2287,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-both",
+      "workload": "high-contention",
+      "clients": 16,
+      "repetition": 2,
+      "measuredMs": 10000,
+      "committed": 3028,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 302.8,
+      "latencyMs": {
+        "p50": 61.32,
+        "p95": 118.61,
+        "p99": 164.06,
+        "max": 195.89
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 4234,
+        "expectedTransfers": 4234,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "serializable",
+      "workload": "high-contention",
+      "clients": 32,
+      "repetition": 2,
+      "measuredMs": 10000,
+      "committed": 583,
+      "rejected": 0,
+      "failed": 53,
+      "failuresByCode": {
+        "40001": 53
+      },
+      "retries": 6552,
+      "retriesByCode": {
+        "40001": 6552
+      },
+      "committedAfterRetry": 561,
+      "throughputPerSecond": 58.3,
+      "latencyMs": {
+        "p50": 269.08,
+        "p95": 1217.26,
+        "p99": 1523.45,
+        "max": 1571.7
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 911,
+        "expectedTransfers": 911,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-both",
+      "workload": "high-contention",
+      "clients": 32,
+      "repetition": 2,
+      "measuredMs": 10000,
+      "committed": 3253,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 325.3,
+      "latencyMs": {
+        "p50": 66.43,
+        "p95": 236.96,
+        "p99": 283.44,
+        "max": 350.69
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 4478,
+        "expectedTransfers": 4478,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-debit",
+      "workload": "high-contention",
+      "clients": 32,
+      "repetition": 2,
+      "measuredMs": 10000,
+      "committed": 4926,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 492.6,
+      "latencyMs": {
+        "p50": 52.59,
+        "p95": 158.26,
+        "p99": 235.11,
+        "max": 375.63
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 6797,
+        "expectedTransfers": 6797,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-both",
+      "workload": "low-contention",
+      "clients": 4,
+      "repetition": 2,
+      "measuredMs": 10000,
+      "committed": 5266,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 526.6,
+      "latencyMs": {
+        "p50": 6.67,
+        "p95": 9.54,
+        "p99": 33.91,
+        "max": 162.34
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 8044,
+        "expectedTransfers": 8044,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-debit",
+      "workload": "low-contention",
+      "clients": 4,
+      "repetition": 2,
+      "measuredMs": 10000,
+      "committed": 6282,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 628.2,
+      "latencyMs": {
+        "p50": 5.98,
+        "p95": 7.89,
+        "p99": 13.86,
+        "max": 162.77
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 8954,
+        "expectedTransfers": 8954,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "serializable",
+      "workload": "low-contention",
+      "clients": 4,
+      "repetition": 2,
+      "measuredMs": 10000,
+      "committed": 6058,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 35,
+      "retriesByCode": {
+        "40001": 35
+      },
+      "committedAfterRetry": 28,
+      "throughputPerSecond": 605.8,
+      "latencyMs": {
+        "p50": 5.45,
+        "p95": 8.45,
+        "p99": 33.43,
+        "max": 214.43
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 8963,
+        "expectedTransfers": 8963,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-debit",
+      "workload": "low-contention",
+      "clients": 16,
+      "repetition": 2,
+      "measuredMs": 10000,
+      "committed": 6428,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 642.8,
+      "latencyMs": {
+        "p50": 21.18,
+        "p95": 38.97,
+        "p99": 58.85,
+        "max": 204.79
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 9247,
+        "expectedTransfers": 9247,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "serializable",
+      "workload": "low-contention",
+      "clients": 16,
+      "repetition": 2,
+      "measuredMs": 10000,
+      "committed": 4509,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 175,
+      "retriesByCode": {
+        "40001": 175
+      },
+      "committedAfterRetry": 112,
+      "throughputPerSecond": 450.9,
+      "latencyMs": {
+        "p50": 19.3,
+        "p95": 143.65,
+        "p99": 228.56,
+        "max": 430.64
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 7550,
+        "expectedTransfers": 7550,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-both",
+      "workload": "low-contention",
+      "clients": 16,
+      "repetition": 2,
+      "measuredMs": 10000,
+      "committed": 5818,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 581.8,
+      "latencyMs": {
+        "p50": 22.97,
+        "p95": 43.17,
+        "p99": 108.62,
+        "max": 173.24
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 8429,
+        "expectedTransfers": 8429,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "serializable",
+      "workload": "low-contention",
+      "clients": 32,
+      "repetition": 2,
+      "measuredMs": 10000,
+      "committed": 6077,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 398,
+      "retriesByCode": {
+        "40001": 398
+      },
+      "committedAfterRetry": 278,
+      "throughputPerSecond": 607.7,
+      "latencyMs": {
+        "p50": 41.06,
+        "p95": 108.76,
+        "p99": 301.99,
+        "max": 448.41
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 8973,
+        "expectedTransfers": 8973,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-both",
+      "workload": "low-contention",
+      "clients": 32,
+      "repetition": 2,
+      "measuredMs": 10000,
+      "committed": 4212,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 421.2,
+      "latencyMs": {
+        "p50": 52.13,
+        "p95": 161.14,
+        "p99": 378.1,
+        "max": 439.22
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 6351,
+        "expectedTransfers": 6351,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-debit",
+      "workload": "low-contention",
+      "clients": 32,
+      "repetition": 2,
+      "measuredMs": 10000,
+      "committed": 4325,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 432.5,
+      "latencyMs": {
+        "p50": 44.72,
+        "p95": 206.52,
+        "p99": 440.01,
+        "max": 626.41
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 7137,
+        "expectedTransfers": 7137,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-both",
+      "workload": "mixed",
+      "clients": 4,
+      "repetition": 2,
+      "measuredMs": 10000,
+      "committed": 2458,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 245.8,
+      "latencyMs": {
+        "p50": 6.74,
+        "p95": 81.69,
+        "p99": 227.51,
+        "max": 453.35
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 4419,
+        "expectedTransfers": 4419,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-debit",
+      "workload": "mixed",
+      "clients": 4,
+      "repetition": 2,
+      "measuredMs": 10000,
+      "committed": 3939,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 393.9,
+      "latencyMs": {
+        "p50": 6.12,
+        "p95": 20.8,
+        "p99": 115.57,
+        "max": 409.03
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 6043,
+        "expectedTransfers": 6043,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "serializable",
+      "workload": "mixed",
+      "clients": 4,
+      "repetition": 2,
+      "measuredMs": 10000,
+      "committed": 2815,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 1475,
+      "retriesByCode": {
+        "40001": 1475
+      },
+      "committedAfterRetry": 669,
+      "throughputPerSecond": 281.5,
+      "latencyMs": {
+        "p50": 5.55,
+        "p95": 44.08,
+        "p99": 160.41,
+        "max": 706.29
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 4638,
+        "expectedTransfers": 4638,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-debit",
+      "workload": "mixed",
+      "clients": 16,
+      "repetition": 2,
+      "measuredMs": 10000,
+      "committed": 3784,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 378.4,
+      "latencyMs": {
+        "p50": 18.32,
+        "p95": 179.3,
+        "p99": 239.36,
+        "max": 503.52
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 6274,
+        "expectedTransfers": 6274,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "serializable",
+      "workload": "mixed",
+      "clients": 16,
+      "repetition": 2,
+      "measuredMs": 10000,
+      "committed": 2659,
+      "rejected": 0,
+      "failed": 4,
+      "failuresByCode": {
+        "40001": 4
+      },
+      "retries": 4447,
+      "retriesByCode": {
+        "40001": 4447
+      },
+      "committedAfterRetry": 868,
+      "throughputPerSecond": 265.9,
+      "latencyMs": {
+        "p50": 14.85,
+        "p95": 304.39,
+        "p99": 610.93,
+        "max": 1111.31
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 4313,
+        "expectedTransfers": 4313,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-both",
+      "workload": "mixed",
+      "clients": 16,
+      "repetition": 2,
+      "measuredMs": 10000,
+      "committed": 4330,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 433,
+      "latencyMs": {
+        "p50": 9.71,
+        "p95": 115.34,
+        "p99": 340.3,
+        "max": 513.85
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 6802,
+        "expectedTransfers": 6802,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "serializable",
+      "workload": "mixed",
+      "clients": 32,
+      "repetition": 2,
+      "measuredMs": 10000,
+      "committed": 1641,
+      "rejected": 0,
+      "failed": 17,
+      "failuresByCode": {
+        "40001": 17
+      },
+      "retries": 5627,
+      "retriesByCode": {
+        "40001": 5627
+      },
+      "committedAfterRetry": 681,
+      "throughputPerSecond": 164.1,
+      "latencyMs": {
+        "p50": 34.34,
+        "p95": 863.34,
+        "p99": 1389.15,
+        "max": 1657.69
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 3122,
+        "expectedTransfers": 3122,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-both",
+      "workload": "mixed",
+      "clients": 32,
+      "repetition": 2,
+      "measuredMs": 10000,
+      "committed": 4449,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 444.9,
+      "latencyMs": {
+        "p50": 9.97,
+        "p95": 287.97,
+        "p99": 510.09,
+        "max": 741.75
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 6698,
+        "expectedTransfers": 6698,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-debit",
+      "workload": "mixed",
+      "clients": 32,
+      "repetition": 2,
+      "measuredMs": 10000,
+      "committed": 5565,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 556.5,
+      "latencyMs": {
+        "p50": 23.33,
+        "p95": 178.95,
+        "p99": 303.11,
+        "max": 511.76
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 7872,
+        "expectedTransfers": 7872,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-both",
+      "workload": "high-contention",
+      "clients": 4,
+      "repetition": 3,
+      "measuredMs": 10000,
+      "committed": 1999,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 199.9,
+      "latencyMs": {
+        "p50": 15.98,
+        "p95": 42.44,
+        "p99": 120.08,
+        "max": 203.13
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 3136,
+        "expectedTransfers": 3136,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-debit",
+      "workload": "high-contention",
+      "clients": 4,
+      "repetition": 3,
+      "measuredMs": 10000,
+      "committed": 2994,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 299.4,
+      "latencyMs": {
+        "p50": 11.12,
+        "p95": 23.18,
+        "p99": 41.59,
+        "max": 208.61
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 4541,
+        "expectedTransfers": 4541,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "serializable",
+      "workload": "high-contention",
+      "clients": 4,
+      "repetition": 3,
+      "measuredMs": 10000,
+      "committed": 2578,
+      "rejected": 0,
+      "failed": 37,
+      "failuresByCode": {
+        "40001": 37
+      },
+      "retries": 1176,
+      "retriesByCode": {
+        "40001": 1176
+      },
+      "committedAfterRetry": 10,
+      "throughputPerSecond": 257.8,
+      "latencyMs": {
+        "p50": 3.24,
+        "p95": 5.04,
+        "p99": 18.38,
+        "max": 471.18
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 3520,
+        "expectedTransfers": 3520,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-debit",
+      "workload": "high-contention",
+      "clients": 16,
+      "repetition": 3,
+      "measuredMs": 10000,
+      "committed": 4651,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 465.1,
+      "latencyMs": {
+        "p50": 25.53,
+        "p95": 88.68,
+        "p99": 192.46,
+        "max": 271.88
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 6518,
+        "expectedTransfers": 6518,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "serializable",
+      "workload": "high-contention",
+      "clients": 16,
+      "repetition": 3,
+      "measuredMs": 10000,
+      "committed": 1477,
+      "rejected": 0,
+      "failed": 5,
+      "failuresByCode": {
+        "40001": 5
+      },
+      "retries": 5531,
+      "retriesByCode": {
+        "40001": 5531
+      },
+      "committedAfterRetry": 980,
+      "throughputPerSecond": 147.7,
+      "latencyMs": {
+        "p50": 38.68,
+        "p95": 452.25,
+        "p99": 702.27,
+        "max": 982.87
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 1927,
+        "expectedTransfers": 1927,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-both",
+      "workload": "high-contention",
+      "clients": 16,
+      "repetition": 3,
+      "measuredMs": 10000,
+      "committed": 2145,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 214.5,
+      "latencyMs": {
+        "p50": 59.01,
+        "p95": 248.15,
+        "p99": 386.54,
+        "max": 642.05
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 2521,
+        "expectedTransfers": 2521,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "serializable",
+      "workload": "high-contention",
+      "clients": 32,
+      "repetition": 3,
+      "measuredMs": 10000,
+      "committed": 536,
+      "rejected": 0,
+      "failed": 94,
+      "failuresByCode": {
+        "40001": 94
+      },
+      "retries": 7544,
+      "retriesByCode": {
+        "40001": 7544
+      },
+      "committedAfterRetry": 453,
+      "throughputPerSecond": 53.6,
+      "latencyMs": {
+        "p50": 258.73,
+        "p95": 1100.16,
+        "p99": 1232.68,
+        "max": 1492.5
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 747,
+        "expectedTransfers": 747,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-both",
+      "workload": "high-contention",
+      "clients": 32,
+      "repetition": 3,
+      "measuredMs": 10000,
+      "committed": 1853,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 185.3,
+      "latencyMs": {
+        "p50": 127.6,
+        "p95": 646.91,
+        "p99": 805.09,
+        "max": 1063.98
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 2383,
+        "expectedTransfers": 2383,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-debit",
+      "workload": "high-contention",
+      "clients": 32,
+      "repetition": 3,
+      "measuredMs": 10000,
+      "committed": 4354,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 435.4,
+      "latencyMs": {
+        "p50": 46.4,
+        "p95": 202.51,
+        "p99": 331.05,
+        "max": 673.17
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 5425,
+        "expectedTransfers": 5425,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-both",
+      "workload": "low-contention",
+      "clients": 4,
+      "repetition": 3,
+      "measuredMs": 10000,
+      "committed": 4902,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 490.2,
+      "latencyMs": {
+        "p50": 6.6,
+        "p95": 9.8,
+        "p99": 56.82,
+        "max": 176.45
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 7082,
+        "expectedTransfers": 7082,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-debit",
+      "workload": "low-contention",
+      "clients": 4,
+      "repetition": 3,
+      "measuredMs": 10000,
+      "committed": 5806,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 580.6,
+      "latencyMs": {
+        "p50": 6.03,
+        "p95": 8.44,
+        "p99": 27.27,
+        "max": 138.19
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 8463,
+        "expectedTransfers": 8463,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "serializable",
+      "workload": "low-contention",
+      "clients": 4,
+      "repetition": 3,
+      "measuredMs": 10000,
+      "committed": 6987,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 38,
+      "retriesByCode": {
+        "40001": 38
+      },
+      "committedAfterRetry": 38,
+      "throughputPerSecond": 698.7,
+      "latencyMs": {
+        "p50": 5.46,
+        "p95": 8.35,
+        "p99": 13.46,
+        "max": 34.78
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 9998,
+        "expectedTransfers": 9998,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-debit",
+      "workload": "low-contention",
+      "clients": 16,
+      "repetition": 3,
+      "measuredMs": 10000,
+      "committed": 5718,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 571.8,
+      "latencyMs": {
+        "p50": 21.15,
+        "p95": 43.05,
+        "p99": 123.61,
+        "max": 370.53
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 8659,
+        "expectedTransfers": 8659,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "serializable",
+      "workload": "low-contention",
+      "clients": 16,
+      "repetition": 3,
+      "measuredMs": 10000,
+      "committed": 6471,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 184,
+      "retriesByCode": {
+        "40001": 184
+      },
+      "committedAfterRetry": 132,
+      "throughputPerSecond": 647.1,
+      "latencyMs": {
+        "p50": 19.26,
+        "p95": 42.57,
+        "p99": 91.92,
+        "max": 288.23
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 9612,
+        "expectedTransfers": 9612,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-both",
+      "workload": "low-contention",
+      "clients": 16,
+      "repetition": 3,
+      "measuredMs": 10000,
+      "committed": 5130,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 513,
+      "latencyMs": {
+        "p50": 23.65,
+        "p95": 57.4,
+        "p99": 161.13,
+        "max": 274.1
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 7800,
+        "expectedTransfers": 7800,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "serializable",
+      "workload": "low-contention",
+      "clients": 32,
+      "repetition": 3,
+      "measuredMs": 10000,
+      "committed": 5747,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 592,
+      "retriesByCode": {
+        "40001": 592
+      },
+      "committedAfterRetry": 342,
+      "throughputPerSecond": 574.7,
+      "latencyMs": {
+        "p50": 42.89,
+        "p95": 124.92,
+        "p99": 216.4,
+        "max": 461.38
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 8410,
+        "expectedTransfers": 8410,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-both",
+      "workload": "low-contention",
+      "clients": 32,
+      "repetition": 3,
+      "measuredMs": 10000,
+      "committed": 5443,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 544.3,
+      "latencyMs": {
+        "p50": 50.57,
+        "p95": 98.89,
+        "p99": 186.79,
+        "max": 296.8
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 8213,
+        "expectedTransfers": 8213,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-debit",
+      "workload": "low-contention",
+      "clients": 32,
+      "repetition": 3,
+      "measuredMs": 10000,
+      "committed": 5249,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 524.9,
+      "latencyMs": {
+        "p50": 46.38,
+        "p95": 153.98,
+        "p99": 246.9,
+        "max": 291.81
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 8191,
+        "expectedTransfers": 8191,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-both",
+      "workload": "mixed",
+      "clients": 4,
+      "repetition": 3,
+      "measuredMs": 10000,
+      "committed": 5057,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 505.7,
+      "latencyMs": {
+        "p50": 6.64,
+        "p95": 12.05,
+        "p99": 26.41,
+        "max": 139.81
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 7778,
+        "expectedTransfers": 7778,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-debit",
+      "workload": "mixed",
+      "clients": 4,
+      "repetition": 3,
+      "measuredMs": 10000,
+      "committed": 6269,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 626.9,
+      "latencyMs": {
+        "p50": 6,
+        "p95": 8.96,
+        "p99": 12.24,
+        "max": 91.15
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 9175,
+        "expectedTransfers": 9175,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "serializable",
+      "workload": "mixed",
+      "clients": 4,
+      "repetition": 3,
+      "measuredMs": 10000,
+      "committed": 4490,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 1959,
+      "retriesByCode": {
+        "40001": 1959
+      },
+      "committedAfterRetry": 990,
+      "throughputPerSecond": 449,
+      "latencyMs": {
+        "p50": 5.38,
+        "p95": 23.86,
+        "p99": 65.34,
+        "max": 240.35
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 6927,
+        "expectedTransfers": 6927,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-debit",
+      "workload": "mixed",
+      "clients": 16,
+      "repetition": 3,
+      "measuredMs": 10000,
+      "committed": 6426,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 642.6,
+      "latencyMs": {
+        "p50": 16.97,
+        "p95": 63.53,
+        "p99": 81.51,
+        "max": 124.23
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 9212,
+        "expectedTransfers": 9212,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "serializable",
+      "workload": "mixed",
+      "clients": 16,
+      "repetition": 3,
+      "measuredMs": 10000,
+      "committed": 2653,
+      "rejected": 0,
+      "failed": 3,
+      "failuresByCode": {
+        "40001": 3
+      },
+      "retries": 4418,
+      "retriesByCode": {
+        "40001": 4418
+      },
+      "committedAfterRetry": 889,
+      "throughputPerSecond": 265.3,
+      "latencyMs": {
+        "p50": 14.93,
+        "p95": 284.15,
+        "p99": 617.91,
+        "max": 1231.16
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 4543,
+        "expectedTransfers": 4543,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-both",
+      "workload": "mixed",
+      "clients": 16,
+      "repetition": 3,
+      "measuredMs": 10000,
+      "committed": 4827,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 482.7,
+      "latencyMs": {
+        "p50": 9.95,
+        "p95": 110.77,
+        "p99": 217.81,
+        "max": 455.2
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 6951,
+        "expectedTransfers": 6951,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "serializable",
+      "workload": "mixed",
+      "clients": 32,
+      "repetition": 3,
+      "measuredMs": 10000,
+      "committed": 1642,
+      "rejected": 0,
+      "failed": 20,
+      "failuresByCode": {
+        "40001": 20
+      },
+      "retries": 5247,
+      "retriesByCode": {
+        "40001": 5247
+      },
+      "committedAfterRetry": 666,
+      "throughputPerSecond": 164.2,
+      "latencyMs": {
+        "p50": 36.15,
+        "p95": 818.35,
+        "p99": 1356.74,
+        "max": 1691.67
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 3190,
+        "expectedTransfers": 3190,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-both",
+      "workload": "mixed",
+      "clients": 32,
+      "repetition": 3,
+      "measuredMs": 10000,
+      "committed": 5494,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 549.4,
+      "latencyMs": {
+        "p50": 9.51,
+        "p95": 222.4,
+        "p99": 261.87,
+        "max": 315.36
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 8209,
+        "expectedTransfers": 8209,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    },
+    {
+      "strategy": "pessimistic-debit",
+      "workload": "mixed",
+      "clients": 32,
+      "repetition": 3,
+      "measuredMs": 10000,
+      "committed": 6531,
+      "rejected": 0,
+      "failed": 0,
+      "failuresByCode": {},
+      "retries": 0,
+      "retriesByCode": {},
+      "committedAfterRetry": 0,
+      "throughputPerSecond": 653.1,
+      "latencyMs": {
+        "p50": 20.21,
+        "p95": 162.79,
+        "p99": 219.78,
+        "max": 275.25
+      },
+      "correctness": {
+        "ledgerSum": "0",
+        "negativeUserAccounts": 0,
+        "transfers": 9270,
+        "expectedTransfers": 9270,
+        "transfersWithoutTwoEntries": 0,
+        "transfersWithoutEvent": 0,
+        "overdraftProbe": {
+          "accepted": 10,
+          "balance": "0"
+        },
+        "ok": true
+      }
+    }
+  ]
+}

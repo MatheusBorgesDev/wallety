@@ -16,7 +16,21 @@ describe("loadEnv", () => {
       databaseUrl: "postgres://x",
       port: 3000,
       webhookSigningSecret: "a-signing-secret-with-at-least-32-chars",
+      corsOrigins: [],
+      trustProxy: undefined,
     });
+  });
+
+  it("reads the allowed browser origins as a list", () => {
+    expect(loadEnv({ ...complete, CORS_ORIGINS: "https://a.example, https://b.example" }).corsOrigins).toEqual([
+      "https://a.example",
+      "https://b.example",
+    ]);
+  });
+
+  it("reads the number of trusted proxies and refuses anything that is not a count", () => {
+    expect(loadEnv({ ...complete, TRUST_PROXY: "1" }).trustProxy).toBe(1);
+    expect(() => loadEnv({ ...complete, TRUST_PROXY: "yes" })).toThrow(/TRUST_PROXY/);
   });
 
   it("parses PORT when provided", () => {

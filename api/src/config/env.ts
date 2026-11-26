@@ -2,6 +2,10 @@ export type AppEnv = {
   databaseUrl: string;
   port: number;
   webhookSigningSecret: string;
+  // Origins allowed to call the API from a browser. Empty: no cross-origin access.
+  corsOrigins: string[];
+  // Reverse proxies in front of the process. Unset: the socket address is the client.
+  trustProxy: number | undefined;
 };
 
 const MIN_SECRET_LENGTH = 32;
@@ -21,5 +25,13 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): AppEnv {
     // The value itself never goes into the message.
     throw new Error(`WEBHOOK_SIGNING_SECRET must be set and have at least ${MIN_SECRET_LENGTH} characters`);
   }
-  return { databaseUrl, port, webhookSigningSecret };
+  const corsOrigins = (source.CORS_ORIGINS ?? "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+  const trustProxy = source.TRUST_PROXY ? Number(source.TRUST_PROXY) : undefined;
+  if (trustProxy !== undefined && (!Number.isInteger(trustProxy) || trustProxy < 0)) {
+    throw new Error(`Invalid TRUST_PROXY: ${source.TRUST_PROXY}`);
+  }
+  return { databaseUrl, port, webhookSigningSecret, corsOrigins, trustProxy };
 }

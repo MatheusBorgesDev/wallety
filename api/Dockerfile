@@ -25,6 +25,9 @@ RUN npm ci --omit=dev --omit=optional --omit=peer && npm cache clean --force
 RUN cd node_modules/@prisma/client/runtime \
   && rm -f query_compiler_*.sqlserver.* query_compiler_*.cockroachdb.* \
        query_compiler_*.mysql.* query_compiler_*.sqlite.* *.map
+# Swagger UI: only the bundle, its preset, the stylesheet and the icon are served.
+RUN cd node_modules/swagger-ui-dist \
+  && rm -f *.map swagger-ui-es-bundle* swagger-ui.js index.html swagger-initializer.js oauth2-redirect.*
 
 # --- runtime: no shell, no package manager, non-root user.
 FROM gcr.io/distroless/nodejs24-debian12:nonroot AS runtime

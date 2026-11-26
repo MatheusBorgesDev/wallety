@@ -10,8 +10,12 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'wallety_dispatcher') THEN
     CREATE ROLE wallety_dispatcher LOGIN PASSWORD 'wallety_dispatcher';
   END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'wallety_purger') THEN
+    CREATE ROLE wallety_purger LOGIN PASSWORD 'wallety_purger';
+  END IF;
 END;
 $$;
 
 GRANT wallety_app TO wallety_api;
 GRANT wallety_dispatch TO wallety_dispatcher;
+GRANT wallety_purge TO wallety_purger;

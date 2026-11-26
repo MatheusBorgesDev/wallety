@@ -23,7 +23,7 @@ services:
     build:
       context: ./api
       target: build
-    # Apply the migrations as the database owner, then create the local login role of the API.
+    # Apply the migrations as the database owner, then create the local login roles.
     command:
       - sh
       - -c
@@ -44,6 +44,9 @@ services:
       PORT: "3000"
       WEBHOOK_SIGNING_SECRET: local-only-webhook-signing-secret-not-a-secret
       JWT_SECRET: local-only-access-token-secret-not-a-secret
+      # The cleanup of expired sandboxes uses the only login that may delete.
+      PURGE_DATABASE_URL: postgresql://wallety_purger:wallety_purger@postgres:5432/wallety?schema=public
+      PURGE_SECRET: local-only-cleanup-secret-not-a-secret-000
     ports:
       - "${API_PORT:-3000}:3000"
     depends_on:

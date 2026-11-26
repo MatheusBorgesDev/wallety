@@ -66,8 +66,8 @@ describe("authorization matrix coverage", () => {
   it("keeps the routes declared public really public, and only those", async () => {
     for (const route of publicV1Routes) {
       const [method, path] = route.split(" ") as ["post", string];
-      // No token: validation answers, not authentication.
-      expect((await request(app)[method](path).send({})).status).toBe(400);
+      // No token, and the answer is not about authentication.
+      expect((await request(app)[method](path).send({})).status).not.toBe(401);
     }
   });
 });

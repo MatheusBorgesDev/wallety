@@ -24,6 +24,8 @@ MIGRATION_DB_SECRET="wallety-migration-database-url"  # migrations: the database
 DISPATCH_DB_SECRET="wallety-dispatch-database-url"    # delivery process: a member of wallety_dispatch
 SIGNING_SECRET="wallety-webhook-signing-secret"       # generated below, never shown
 JWT_SECRET="wallety-jwt-secret"                       # generated below, never shown
+PURGE_DB_SECRET="wallety-purge-database-url"          # cleanup: a login that is a member of wallety_purge
+PURGE_SECRET="wallety-purge-secret"                   # generated below, never shown
 
 DEPLOYER_EMAIL="${DEPLOYER}@${PROJECT_ID}.iam.gserviceaccount.com"
 RUNTIME_EMAIL="${RUNTIME}@${PROJECT_ID}.iam.gserviceaccount.com"
@@ -50,13 +52,13 @@ exists gcloud iam service-accounts describe "$WORKER_EMAIL" --project="$PROJECT_
   gcloud iam service-accounts create "$WORKER" --project="$PROJECT_ID" --display-name="Wallety webhook delivery"
 
 echo "==> Database URL secrets (empty containers; the values are added by hand in the console)"
-for secret in "$DB_SECRET" "$MIGRATION_DB_SECRET" "$DISPATCH_DB_SECRET"; do
+for secret in "$DB_SECRET" "$MIGRATION_DB_SECRET" "$DISPATCH_DB_SECRET" "$PURGE_DB_SECRET"; do
   exists gcloud secrets describe "$secret" --project="$PROJECT_ID" ||
     gcloud secrets create "$secret" --project="$PROJECT_ID" --replication-policy=automatic
 done
 
-echo "==> Webhook signing secret and access token secret (generated here; no one needs to see them)"
-for secret in "$SIGNING_SECRET" "$JWT_SECRET"; do
+echo "==> Signing, access token and cleanup secrets (generated here; no one needs to see them)"
+for secret in "$SIGNING_SECRET" "$JWT_SECRET" "$PURGE_SECRET"; do
   if ! exists gcloud secrets describe "$secret" --project="$PROJECT_ID"; then
     gcloud secrets create "$secret" --project="$PROJECT_ID" --replication-policy=automatic
     openssl rand -hex 32 | tr -d '\n' |
@@ -79,6 +81,11 @@ grant_secret "$SIGNING_SECRET" "$RUNTIME_EMAIL"
 grant_secret "$SIGNING_SECRET" "$WORKER_EMAIL"
 # Only the API signs and verifies access tokens.
 grant_secret "$JWT_SECRET" "$RUNTIME_EMAIL"
+# The cleanup runs inside the API, on its own database login. The scheduled workflow that
+# triggers it authenticates as the deployer and presents the cleanup secret.
+grant_secret "$PURGE_DB_SECRET" "$RUNTIME_EMAIL"
+grant_secret "$PURGE_SECRET" "$RUNTIME_EMAIL"
+grant_secret "$PURGE_SECRET" "$DEPLOYER_EMAIL"
 # Deployer: push images, release new revisions, and run them as the runtime account. Nothing else.
 gcloud artifacts repositories add-iam-policy-binding "$REGISTRY" --project="$PROJECT_ID" --location="$REGION" \
   --role=roles/artifactregistry.writer --member="serviceAccount:${DEPLOYER_EMAIL}" >/dev/null
@@ -123,6 +130,9 @@ exists gcloud run services describe "$WORKER_SERVICE" --project="$PROJECT_ID" --
     --no-allow-unauthenticated --max-instances=1 --quiet
 gcloud run services add-iam-policy-binding "$WORKER_SERVICE" --project="$PROJECT_ID" --region="$REGION" \
   --role=roles/run.invoker --member="serviceAccount:${RUNTIME_EMAIL}" >/dev/null
+# The hourly maintenance workflow sweeps the outbox as the deployer.
+gcloud run services add-iam-policy-binding "$WORKER_SERVICE" --project="$PROJECT_ID" --region="$REGION" \
+  --role=roles/run.invoker --member="serviceAccount:${DEPLOYER_EMAIL}" >/dev/null
 
 cat <<SUMMARY
 
@@ -136,7 +146,7 @@ Done. None of the values below is a secret. Store them as GitHub Actions reposit
   GCP_WORKER_SERVICE_ACCOUNT=${WORKER_EMAIL}
   SERVICE_URL=$(gcloud run services describe "$SERVICE" --project="$PROJECT_ID" --region="$REGION" --format='value(status.url)')
 
-Remaining manual step: add the three database connection strings as new versions of the
-secrets "${DB_SECRET}", "${MIGRATION_DB_SECRET}" and "${DISPATCH_DB_SECRET}" in Secret
+Remaining manual step: add the four database connection strings as new versions of the
+secrets "${DB_SECRET}", "${MIGRATION_DB_SECRET}", "${DISPATCH_DB_SECRET}" and "${PURGE_DB_SECRET}" in Secret
 Manager (see infra/README.md). Secrets are stored nowhere else.
 SUMMARY

@@ -161,4 +161,4 @@ export const authorizationMatrix: AuthorizationCase[] = [
 ];
 
 // Routes of /v1 that take no signed-in user. Everything else must be in the matrix.
-export const publicV1Routes = ["post /v1/auth/register", "post /v1/auth/login"];
+export const publicV1Routes = ["post /v1/auth/register", "post /v1/auth/login", "post /v1/auth/demo"];

@@ -83,6 +83,24 @@ async function main() {
   expectStatus("statement", await call("GET", `/v1/accounts/${from}/entries`, { token }), 200);
   expectStatus("open an account", await call("POST", "/v1/accounts", { token, body: { name: "Savings", currency: "USD" } }), 201);
 
+  // A demo needs no credentials and gets the same funded account.
+  const demo = await call("POST", "/v1/auth/demo");
+  expectStatus("demo", demo, 201);
+  const demoAccounts = await call("GET", "/v1/accounts", { token: demo.body.accessToken });
+  if (demoAccounts.body.accounts?.[0]?.balance !== "100000") {
+    throw new Error(`Expected the demo account to open with 100000, got ${JSON.stringify(demoAccounts.body)}`);
+  }
+
+  // The cleanup refuses a caller without its secret and, with it, runs on its own database login.
+  expectStatus("cleanup without the secret", await call("POST", "/internal/purge"), 401);
+  if (process.env.SMOKE_PURGE_SECRET) {
+    const purge = await call("POST", "/internal/purge", { token: process.env.SMOKE_PURGE_SECRET });
+    expectStatus("cleanup", purge, 200);
+    if (purge.body.sandboxes !== 0) {
+      throw new Error(`Nothing has expired yet, but the cleanup removed ${purge.body.sandboxes} sandbox(es)`);
+    }
+  }
+
   const event = await waitFor("the transfer event to be delivered", async () => {
     const events = await call("GET", "/v1/webhook-events", { token });
     expectStatus("webhook events", events, 200);

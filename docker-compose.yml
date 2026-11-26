@@ -43,6 +43,7 @@ services:
       DATABASE_URL: postgresql://wallety_api:wallety_api@postgres:5432/wallety?schema=public
       PORT: "3000"
       WEBHOOK_SIGNING_SECRET: local-only-webhook-signing-secret-not-a-secret
+      JWT_SECRET: local-only-access-token-secret-not-a-secret
     ports:
       - "${API_PORT:-3000}:3000"
     depends_on:

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { loadEnv } from "./env.js";
+import { loadApiEnv, loadEnv } from "./env.js";
 
 const complete = {
   DATABASE_URL: "postgres://x",
@@ -49,5 +49,24 @@ describe("loadEnv", () => {
     } catch (error) {
       expect(String(error)).not.toContain("short-secret-value");
     }
+  });
+});
+
+describe("loadApiEnv", () => {
+  const api = { ...complete, JWT_SECRET: "a-jwt-secret-with-at-least-32-characters" };
+
+  it("adds the token secret and a default lifetime of two hours", () => {
+    expect(loadApiEnv(api)).toMatchObject({ jwtSecret: api.JWT_SECRET, accessTokenTtlSeconds: 7200 });
+  });
+
+  it("throws when the token secret is missing or too short, without echoing it", () => {
+    expect(() => loadApiEnv(complete)).toThrow(/JWT_SECRET/);
+    expect(() => loadApiEnv({ ...complete, JWT_SECRET: "short-secret" })).toThrow(/at least 32/);
+    expect(() => loadApiEnv({ ...complete, JWT_SECRET: "short-secret" })).not.toThrow(/short-secret/);
+  });
+
+  it("refuses a token lifetime that is not a positive number of seconds", () => {
+    expect(() => loadApiEnv({ ...api, ACCESS_TOKEN_TTL_SECONDS: "soon" })).toThrow(/ACCESS_TOKEN_TTL_SECONDS/);
+    expect(loadApiEnv({ ...api, ACCESS_TOKEN_TTL_SECONDS: "600" }).accessTokenTtlSeconds).toBe(600);
   });
 });

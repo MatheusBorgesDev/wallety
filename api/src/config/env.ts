@@ -35,3 +35,25 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): AppEnv {
   }
   return { databaseUrl, port, webhookSigningSecret, corsOrigins, trustProxy };
 }
+
+export type ApiEnv = AppEnv & {
+  jwtSecret: string;
+  accessTokenTtlSeconds: number;
+};
+
+const DEFAULT_ACCESS_TOKEN_TTL_SECONDS = 2 * 60 * 60;
+
+// What only the API process needs, on top of what every process needs.
+export function loadApiEnv(source: NodeJS.ProcessEnv = process.env): ApiEnv {
+  const jwtSecret = source.JWT_SECRET;
+  if (!jwtSecret || jwtSecret.length < MIN_SECRET_LENGTH) {
+    throw new Error(`JWT_SECRET must be set and have at least ${MIN_SECRET_LENGTH} characters`);
+  }
+  const accessTokenTtlSeconds = source.ACCESS_TOKEN_TTL_SECONDS
+    ? Number(source.ACCESS_TOKEN_TTL_SECONDS)
+    : DEFAULT_ACCESS_TOKEN_TTL_SECONDS;
+  if (!Number.isInteger(accessTokenTtlSeconds) || accessTokenTtlSeconds <= 0) {
+    throw new Error(`Invalid ACCESS_TOKEN_TTL_SECONDS: ${source.ACCESS_TOKEN_TTL_SECONDS}`);
+  }
+  return { ...loadEnv(source), jwtSecret, accessTokenTtlSeconds };
+}

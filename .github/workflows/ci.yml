@@ -150,6 +150,7 @@ jobs:
       WORKER_SERVICE: wallety-worker
       DISPATCH_DB_SECRET: wallety-dispatch-database-url
       SIGNING_SECRET: wallety-webhook-signing-secret
+      JWT_SECRET_NAME: wallety-jwt-secret
       IMAGE: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/wallety/api:${{ github.sha }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -182,7 +183,8 @@ jobs:
             --region="${{ vars.GCP_REGION }}" \
             --image="$IMAGE" \
             --service-account="${{ vars.GCP_RUNTIME_SERVICE_ACCOUNT }}" \
-            --update-secrets="DATABASE_URL=${DB_SECRET}:latest,WEBHOOK_SIGNING_SECRET=${SIGNING_SECRET}:latest" \
+            --update-secrets="DATABASE_URL=${DB_SECRET}:latest,WEBHOOK_SIGNING_SECRET=${SIGNING_SECRET}:latest,JWT_SECRET=${JWT_SECRET_NAME}:latest" \
+            --set-env-vars="TRUST_PROXY=1" \
             --max-instances=2 \
             --memory=512Mi \
             --cpu=1 \
